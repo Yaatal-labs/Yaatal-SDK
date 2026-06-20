@@ -1,0 +1,43 @@
+{
+  "name": "@yaatal/client",
+  "version": "0.1.0-beta.0",
+  "description": "Typed JavaScript/TypeScript client for Yaatal Engine",
+  "type": "module",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yaatal-labs/Yaatal-SDK.git"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "docs",
+    "LICENSE-MIT"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test:contracts": "node ./scripts/contract-smoke.mjs",
+    "test:pack-install": "node ./scripts/pack-install-smoke.mjs",
+    "test": "npm run test:contracts",
+    "prepublishOnly": "npm run test:contracts && npm run build && npm run test:pack-install"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
