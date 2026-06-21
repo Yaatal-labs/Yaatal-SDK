@@ -4,40 +4,84 @@ Typed TypeScript client for Yaatal Engine.
 
 Client TypeScript typé pour Yaatal Engine.
 
+[English](#english) | [Français](#francais)
+
 ## English
 
-### What This Package Does
+`@yaatal/client` is the frontend and integration client for Yaatal Engine. It
+does not run a server and it does not own business state. Install it in BOBO or
+another app, point it at an Engine URL, then call typed methods instead of
+hand-writing `fetch` calls.
 
-`@yaatal/client` is a thin HTTP client. It sends requests to Engine, attaches
-bearer auth, parses JSON, and throws `YaatalApiError` for non-2xx responses.
+```text
+BOBO or another UI
+  -> @yaatal/client
+  -> Yaatal Engine HTTP API
+  -> Engine database and business rules
+```
 
-It does not own business state. Engine remains the source of truth for auth,
-products, orders, delivery, notifications, analytics, and BOBO commerce.
+Engine remains the source of truth for auth, products, orders, delivery,
+notifications, analytics, and BOBO commerce. The SDK handles request URLs,
+query strings, JSON bodies, bearer auth, typed responses, and API errors.
+
+### Current Scope
+
+V1 is a client for one configured Engine instance. It is ready for local
+development, BOBO integration, and a controlled staging sandbox. It is not yet a
+public multitenant hosted-platform SDK.
+
+The package exposes:
+
+| Namespace | Use |
+|---|---|
+| `client.auth` | login, registration, session/user helpers |
+| `client.products` | product CRUD/listing backed by Engine |
+| `client.orders` | generic Engine order APIs |
+| `client.delivery` | generic delivery lifecycle APIs |
+| `client.search` | SQL-backed product, merchant, and order search |
+| `client.notifications` | in-app notification records |
+| `client.analytics` | authenticated `track` and `identify` |
+| `client.bobo` | BOBO checkout, orders, escrow, and KYC bridge helpers |
+
+There is no `client.ai` in V1. Apps can bring their own AI service and call
+Engine through the SDK. See [BYO AI Integration](docs/BYO-AI-INTEGRATION.md).
 
 ### Install
 
+After npm publication:
+
 ```bash
-npm install @yaatal/client
+npm install @yaatal/client@beta
 ```
 
-For local development in this repo:
+Before npm publication, or when testing directly from GitHub:
+
+```bash
+npm install github:Yaatal-labs/Yaatal-SDK#main
+```
+
+For local SDK development:
 
 ```bash
 npm ci
 npm run build
 ```
 
-Before npm publication, a consuming app can install from GitHub:
+### Configure Engine URL
+
+For Expo, React Native, or browser builds:
 
 ```bash
-npm install github:Yaatal-labs/Yaatal-SDK#yaatal/sdk-v1-extraction
+EXPO_PUBLIC_ENGINE_API_URL=https://your-engine-staging-url
 ```
 
-### Configure
+For Node/server-side usage:
 
 ```bash
-EXPO_PUBLIC_ENGINE_API_URL=https://yaatal-engine-production.up.railway.app
+YAATAL_ENGINE_API_URL=https://your-engine-staging-url
 ```
+
+You can also pass the URL directly:
 
 ```ts
 import { createYaatalClient } from "@yaatal/client";
@@ -46,6 +90,8 @@ const client = createYaatalClient({
   baseUrl: "http://localhost:5150",
 });
 ```
+
+If no URL is configured, the SDK defaults to `http://localhost:5150`.
 
 ### Auth
 
@@ -58,74 +104,63 @@ const session = await client.auth.login({
 client.setToken(session.token);
 ```
 
-If the app already has a JWT:
+If the app already has an Engine JWT:
 
 ```ts
-const client = createYaatalClient({ token });
-```
-
-### Products And Orders
-
-```ts
-const products = await client.products.list({
-  category: "grocery",
-});
-
-const order = await client.orders.create({
-  seller_id: "merchant-profile-id",
-  payment_method: "cash",
-  delivery_method: "pickup",
-  items: [{ product_id: products.products[0].id, quantity: 1 }],
+const client = createYaatalClient({
+  baseUrl: process.env.EXPO_PUBLIC_ENGINE_API_URL,
+  token,
 });
 ```
 
-Notes:
+Authenticated SDK calls attach:
 
-- `products.list()` only returns active products.
-- Generic order creation derives the buyer from the JWT.
-- The SDK does not expose direct payment mutation helpers.
-
-### Search
-
-```ts
-const productResults = await client.search.products({ q: "rice", limit: 20 });
-const merchantResults = await client.search.merchants({ q: "dakar" });
-const orderResults = await client.search.orders({ status: "pending" });
+```text
+Authorization: Bearer <jwt>
 ```
 
-Product and merchant search are public. Order search requires auth and is scoped
-to buyer or seller ownership.
+### UI Integration Shape
 
-### Notifications
+Do not scatter SDK calls through every screen. Put the client behind a small app
+service or hook layer:
 
-```ts
-const notifications = await client.notifications.list({ limit: 25 });
-const unread = await client.notifications.unreadCount();
-
-await client.notifications.markRead(notifications[0].id);
-await client.notifications.markAllRead();
+```text
+BOBO screen
+  -> BOBO hook/service
+  -> @yaatal/client
+  -> Engine
 ```
 
-Notifications are in-app records. Push token registration is not part of V1.
-
-### Analytics
+Example:
 
 ```ts
-await client.analytics.track({
-  event: "checkout_started",
-  properties: { source: "bobo" },
-});
+import { createYaatalClient } from "@yaatal/client";
 
-await client.analytics.identify({
-  traits: { role: "buyer" },
-});
+export function makeYaatalClient(token?: string) {
+  return createYaatalClient({
+    baseUrl: process.env.EXPO_PUBLIC_ENGINE_API_URL,
+    token,
+  });
+}
 ```
 
-Analytics V1 is authenticated. Engine derives identity from the JWT.
-
-### BOBO Checkout
+Then BOBO code can call domain helpers:
 
 ```ts
+export async function confirmOrderDelivery(orderId: number, token: string) {
+  return makeYaatalClient(token).bobo.confirmDelivery(orderId);
+}
+```
+
+For a fuller app migration path, read
+[UI Integration Guide](docs/UI-INTEGRATION.md).
+
+### Common Calls
+
+```ts
+const products = await client.search.products({ q: "rice", limit: 20 });
+const orders = await client.bobo.listOrders({ limit: 25 });
+
 const checkout = await client.bobo.checkout({
   items: [{ product_id: "product-id", quantity: 1 }],
   payment_method: "wave",
@@ -135,122 +170,121 @@ const checkout = await client.bobo.checkout({
   idempotency_key: crypto.randomUUID(),
 });
 
-console.log(checkout.order.engine_order_id);
-console.log(checkout.payment.provider_ref);
+await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
-`buyer_id` is optional. Engine derives the buyer from the JWT when possible.
+### Contributor Paths
 
-BOBO lifecycle helpers:
+| Contributor | Start Here |
+|---|---|
+| UI / BOBO app work | [UI Integration Guide](docs/UI-INTEGRATION.md) |
+| Beta tester setup | [Beta Sandbox Guide](docs/BETA-SANDBOX.md) |
+| API contract review | [API SDK Contract](docs/API-SDK-CONTRACT.md) |
+| Endpoint coverage review | [API Endpoint Inventory](docs/API-ENDPOINT-INVENTORY.md) |
+| BYO AI integration | [BYO AI Integration](docs/BYO-AI-INTEGRATION.md) |
+| Release checklist | [SDK V1 Rollout Checklist](docs/deployment/sdk-v1-rollout-checklist.md) |
 
-```ts
-const orders = await client.bobo.listOrders({ limit: 25 });
-const detail = await client.bobo.getOrder(orders[0].id);
-const escrow = await client.bobo.escrow(orders[0].id);
-
-await client.bobo.confirmDelivery(orders[0].id);
-```
-
-The SDK does not expose `simulatePayment`.
-
-### Generic Delivery
-
-```ts
-const delivery = await client.delivery.create({
-  order_id: "engine-order-id",
-  method: "bobo_managed",
-  dropoff_address: "Dakar",
-  phone_number: "+221770000000",
-});
-
-await client.delivery.updateStatus(delivery.id, { status: "accepted" });
-await client.delivery.confirm(delivery.id, { proof_note: "received by buyer" });
-```
-
-Buyer confirmation is the final delivery action for escrow release.
-
-### Checks
+### Local Checks
 
 ```bash
 npm run test:contracts
 npm run build
 npm run test:pack-install
+npm publish --dry-run --tag beta --access public
 ```
 
 `test:contracts` checks the source contract without external services. `build`
-requires `typescript` and generates the publishable `dist/` files. The
-`test:pack-install` smoke command expects `dist/` to exist, runs `npm pack`,
-asserts that the tarball contains `dist`, `package.json`, and this README only
-from the published surface, installs the tarball into a temporary consumer app,
-and imports `@yaatal/client` through the package export.
+generates the publishable `dist/` files. `test:pack-install` packs the package,
+installs it into a temporary consumer app, and imports `@yaatal/client` through
+the package export.
 
-For a minimal local usage check after `build`, point a Node ESM script at the
-generated package:
+### Boundaries
 
-```ts
-import { createYaatalClient } from "./dist/index.js";
+- The SDK is not deployed to Railway.
+- Engine is deployed to Railway or run locally.
+- BOBO web/native owns the app shell and UI.
+- The SDK only connects apps to Engine.
+- A staging sandbox is enough for a closed beta. Real multitenancy is a later
+  Engine/platform concern.
 
-const client = createYaatalClient({
-  baseUrl: "http://localhost:5150",
-  fetch: async (input, init) => {
-    console.log(init?.method ?? "GET", String(input));
-    return new Response(
-      JSON.stringify({ products: [], total: 0, page: 1, per_page: 5 }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    );
-  },
-});
+## Francais
 
-const products = await client.products.list({ per_page: 5 });
-console.log(products.products);
+`@yaatal/client` est le client d'intégration pour Yaatal Engine. Il ne lance pas
+de serveur et ne garde pas l'état métier. Installez-le dans BOBO ou dans une
+autre app, pointez-le vers une URL Engine, puis utilisez des méthodes typées au
+lieu d'écrire des appels `fetch` à la main.
+
+```text
+BOBO ou une autre UI
+  -> @yaatal/client
+  -> API HTTP Yaatal Engine
+  -> base de données et règles métier Engine
 ```
 
-### Available Namespaces
+Engine reste la source de vérité pour l'auth, les produits, les commandes, la
+livraison, les notifications, l'analytics et le commerce BOBO. Le SDK gère les
+URLs, les paramètres de requête, les corps JSON, le bearer token, les réponses
+typées et les erreurs API.
 
-- `client.analytics`
-- `client.auth`
-- `client.bobo`
-- `client.delivery`
-- `client.notifications`
-- `client.orders`
-- `client.products`
-- `client.search`
+### Périmètre Actuel
 
-## Français
+La V1 cible une seule instance Engine configurée. Elle convient au
+développement local, à l'intégration BOBO et à un sandbox staging contrôlé. Ce
+n'est pas encore un SDK SaaS public multitenant.
 
-### Rôle Du Package
+Le package expose:
 
-`@yaatal/client` est un client HTTP léger. Il envoie les requêtes à Engine,
-ajoute le bearer token, parse le JSON et lance `YaatalApiError` pour les réponses
-non-2xx.
+| Namespace | Usage |
+|---|---|
+| `client.auth` | login, inscription, session et utilisateur |
+| `client.products` | produits gérés par Engine |
+| `client.orders` | commandes génériques Engine |
+| `client.delivery` | cycle de vie livraison |
+| `client.search` | recherche produits, marchands et commandes |
+| `client.notifications` | notifications in-app |
+| `client.analytics` | `track` et `identify` authentifiés |
+| `client.bobo` | checkout, commandes, escrow et KYC BOBO |
 
-Il ne garde pas l'état métier. Engine reste la source de vérité pour auth,
-produits, commandes, livraison, notifications, analytics et commerce BOBO.
+Il n'y a pas de `client.ai` en V1. Chaque app peut brancher son propre service
+IA et appeler Engine via le SDK. Voir
+[Intégration IA externe](docs/BYO-AI-INTEGRATION.md).
 
 ### Installation
 
+Après publication npm:
+
 ```bash
-npm install @yaatal/client
+npm install @yaatal/client@beta
 ```
 
-En développement local dans ce repo:
+Avant publication npm, ou pour tester directement depuis GitHub:
+
+```bash
+npm install github:Yaatal-labs/Yaatal-SDK#main
+```
+
+Pour développer le SDK localement:
 
 ```bash
 npm ci
 npm run build
 ```
 
-Avant publication npm, une app consommatrice peut installer depuis GitHub:
+### Configurer L'URL Engine
+
+Pour Expo, React Native ou une app web:
 
 ```bash
-npm install github:Yaatal-labs/Yaatal-SDK#yaatal/sdk-v1-extraction
+EXPO_PUBLIC_ENGINE_API_URL=https://votre-url-engine-staging
 ```
 
-### Configuration
+Pour Node ou un usage serveur:
 
 ```bash
-EXPO_PUBLIC_ENGINE_API_URL=https://yaatal-engine-production.up.railway.app
+YAATAL_ENGINE_API_URL=https://votre-url-engine-staging
 ```
+
+Vous pouvez aussi passer l'URL directement:
 
 ```ts
 import { createYaatalClient } from "@yaatal/client";
@@ -259,6 +293,8 @@ const client = createYaatalClient({
   baseUrl: "http://localhost:5150",
 });
 ```
+
+Sans URL configurée, le SDK utilise `http://localhost:5150`.
 
 ### Auth
 
@@ -271,75 +307,63 @@ const session = await client.auth.login({
 client.setToken(session.token);
 ```
 
-Si l'app possède déjà un JWT:
+Si l'app possède déjà un JWT Engine:
 
 ```ts
-const client = createYaatalClient({ token });
-```
-
-### Produits Et Commandes
-
-```ts
-const products = await client.products.list({
-  category: "grocery",
-});
-
-const order = await client.orders.create({
-  seller_id: "merchant-profile-id",
-  payment_method: "cash",
-  delivery_method: "pickup",
-  items: [{ product_id: products.products[0].id, quantity: 1 }],
+const client = createYaatalClient({
+  baseUrl: process.env.EXPO_PUBLIC_ENGINE_API_URL,
+  token,
 });
 ```
 
-Notes:
+Les appels authentifiés ajoutent:
 
-- `products.list()` retourne seulement les produits actifs.
-- La création de commande générique déduit l'acheteur depuis le JWT.
-- Le SDK n'expose pas de helper pour muter directement un paiement.
-
-### Recherche
-
-```ts
-const productResults = await client.search.products({ q: "riz", limit: 20 });
-const merchantResults = await client.search.merchants({ q: "dakar" });
-const orderResults = await client.search.orders({ status: "pending" });
+```text
+Authorization: Bearer <jwt>
 ```
 
-La recherche produits et marchands est publique. La recherche commandes exige un
-JWT et reste limitée aux commandes où le profil est acheteur ou vendeur.
+### Forme D'Intégration UI
 
-### Notifications
+Évitez de mettre des appels SDK dans chaque écran. Placez le client derrière
+une petite couche service ou hook de l'app:
 
-```ts
-const notifications = await client.notifications.list({ limit: 25 });
-const unread = await client.notifications.unreadCount();
-
-await client.notifications.markRead(notifications[0].id);
-await client.notifications.markAllRead();
+```text
+écran BOBO
+  -> hook/service BOBO
+  -> @yaatal/client
+  -> Engine
 ```
 
-Les notifications V1 sont des enregistrements in-app. L'enregistrement de tokens
-push n'est pas inclus dans cette version.
-
-### Analytics
+Exemple:
 
 ```ts
-await client.analytics.track({
-  event: "checkout_started",
-  properties: { source: "bobo" },
-});
+import { createYaatalClient } from "@yaatal/client";
 
-await client.analytics.identify({
-  traits: { role: "buyer" },
-});
+export function makeYaatalClient(token?: string) {
+  return createYaatalClient({
+    baseUrl: process.env.EXPO_PUBLIC_ENGINE_API_URL,
+    token,
+  });
+}
 ```
 
-Analytics V1 exige un JWT. Engine déduit l'identité depuis ce JWT.
-
-### Checkout BOBO
+Puis le code BOBO peut appeler des helpers métier:
 
 ```ts
+export async function confirmOrderDelivery(orderId: number, token: string) {
+  return makeYaatalClient(token).bobo.confirmDelivery(orderId);
+}
+```
+
+Pour le chemin de migration complet, lisez le
+[Guide d'intégration UI](docs/UI-INTEGRATION.md).
+
+### Appels Courants
+
+```ts
+const products = await client.search.products({ q: "rice", limit: 20 });
+const orders = await client.bobo.listOrders({ limit: 25 });
+
 const checkout = await client.bobo.checkout({
   items: [{ product_id: "product-id", quantity: 1 }],
   payment_method: "wave",
@@ -349,83 +373,39 @@ const checkout = await client.bobo.checkout({
   idempotency_key: crypto.randomUUID(),
 });
 
-console.log(checkout.order.engine_order_id);
-console.log(checkout.payment.provider_ref);
+await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
-`buyer_id` est optionnel. Engine déduit l'acheteur depuis le JWT quand c'est
-possible.
+### Chemins Pour Contribuer
 
-Helpers de cycle de vie BOBO:
+| Profil | Commencer Ici |
+|---|---|
+| UI / app BOBO | [Guide d'intégration UI](docs/UI-INTEGRATION.md) |
+| Test beta | [Guide sandbox beta](docs/BETA-SANDBOX.md) |
+| Revue contrat API | [Contrat API SDK](docs/API-SDK-CONTRACT.md) |
+| Couverture endpoints | [Inventaire endpoints API](docs/API-ENDPOINT-INVENTORY.md) |
+| IA externe | [Intégration IA externe](docs/BYO-AI-INTEGRATION.md) |
+| Release | [Checklist rollout SDK V1](docs/deployment/sdk-v1-rollout-checklist.md) |
 
-```ts
-const orders = await client.bobo.listOrders({ limit: 25 });
-const detail = await client.bobo.getOrder(orders[0].id);
-const escrow = await client.bobo.escrow(orders[0].id);
-
-await client.bobo.confirmDelivery(orders[0].id);
-```
-
-Le SDK n'expose pas `simulatePayment`.
-
-### Livraison Générique
-
-```ts
-const delivery = await client.delivery.create({
-  order_id: "engine-order-id",
-  method: "bobo_managed",
-  dropoff_address: "Dakar",
-  phone_number: "+221770000000",
-});
-
-await client.delivery.updateStatus(delivery.id, { status: "accepted" });
-await client.delivery.confirm(delivery.id, { proof_note: "received by buyer" });
-```
-
-La confirmation acheteur est l'action finale qui autorise la libération escrow.
-
-### Contrôles
+### Vérifications Locales
 
 ```bash
 npm run test:contracts
 npm run build
 npm run test:pack-install
+npm publish --dry-run --tag beta --access public
 ```
 
 `test:contracts` vérifie le contrat source sans service externe. `build`
-nécessite `typescript` et génère les fichiers publiables dans `dist/`. La
-commande `test:pack-install` attend `dist/`, lance `npm pack`, vérifie que le
-tarball contient `dist`, `package.json` et ce README pour la surface publiée,
-installe le tarball dans une app consommatrice temporaire, puis importe
-`@yaatal/client` via l'export du package.
+génère les fichiers publiables dans `dist/`. `test:pack-install` prépare le
+package, l'installe dans une app temporaire et importe `@yaatal/client` via
+l'export du package.
 
-Exemple local minimal après `build` avec un script Node ESM:
+### Limites
 
-```ts
-import { createYaatalClient } from "./dist/index.js";
-
-const client = createYaatalClient({
-  baseUrl: "http://localhost:5150",
-  fetch: async (input, init) => {
-    console.log(init?.method ?? "GET", String(input));
-    return new Response(
-      JSON.stringify({ products: [], total: 0, page: 1, per_page: 5 }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    );
-  },
-});
-
-const products = await client.products.list({ per_page: 5 });
-console.log(products.products);
-```
-
-### Namespaces Disponibles
-
-- `client.analytics`
-- `client.auth`
-- `client.bobo`
-- `client.delivery`
-- `client.notifications`
-- `client.orders`
-- `client.products`
-- `client.search`
+- Le SDK ne se déploie pas sur Railway.
+- Engine se déploie sur Railway ou tourne en local.
+- BOBO web/native garde l'app shell et l'UI.
+- Le SDK connecte seulement les apps à Engine.
+- Un sandbox staging suffit pour une beta fermée. Le vrai multitenant viendra
+  plus tard côté Engine/platform.
