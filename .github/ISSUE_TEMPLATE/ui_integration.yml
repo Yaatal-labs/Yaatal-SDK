@@ -1,0 +1,40 @@
+name: UI integration help
+description: Ask for help wiring a UI flow through the SDK
+title: "[ui]: "
+labels: ["ui-integration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for BOBO or frontend integration questions.
+
+        Utilisez ce template pour les questions BOBO ou frontend.
+  - type: dropdown
+    id: flow
+    attributes:
+      label: Flow
+      options:
+        - Auth/session
+        - Product/search discovery
+        - Checkout
+        - Orders
+        - Delivery
+        - Notifications
+        - Analytics
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: current_code
+    attributes:
+      label: Current approach
+      description: Link or paste the app service/hook/screen you are wiring.
+    validations:
+      required: true
+  - type: textarea
+    id: blocker
+    attributes:
+      label: Blocker
+      description: What is unclear or failing?
+    validations:
+      required: true

@@ -11,14 +11,13 @@ real Engine endpoints.
 
 ```bash
 npm ci
-npm run build
-npm run test:contracts
+npm run check
 ```
 
-For a package smoke test:
+For the mocked example smoke:
 
 ```bash
-npm run test:pack-install
+npm run example:node-smoke
 ```
 
 ### Rules Of Thumb
@@ -38,6 +37,7 @@ npm run test:pack-install
 npm run test:contracts
 npm run build
 npm run test:pack-install
+npm run example:node-smoke
 git diff --check
 ```
 
@@ -50,14 +50,13 @@ liées à de vrais endpoints Engine.
 
 ```bash
 npm ci
-npm run build
-npm run test:contracts
+npm run check
 ```
 
-Pour tester le package:
+Pour tester l'exemple mocke:
 
 ```bash
-npm run test:pack-install
+npm run example:node-smoke
 ```
 
 ### Règles Pratiques
@@ -79,5 +78,6 @@ npm run test:pack-install
 npm run test:contracts
 npm run build
 npm run test:pack-install
+npm run example:node-smoke
 git diff --check
 ```

@@ -28,6 +28,8 @@
     "build": "tsc -p tsconfig.json",
     "test:contracts": "node ./scripts/contract-smoke.mjs",
     "test:pack-install": "node ./scripts/pack-install-smoke.mjs",
+    "example:node-smoke": "node ./examples/node-smoke.mjs",
+    "check": "npm run test:contracts && npm run build && npm run test:pack-install",
     "test": "npm run test:contracts",
     "prepublishOnly": "npm run test:contracts && npm run build && npm run test:pack-install"
   },

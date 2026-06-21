@@ -1,0 +1,39 @@
+name: SDK contract request
+description: Request a new SDK method or contract correction
+title: "[contract]: "
+labels: ["sdk-contract"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when Engine already has, or needs, an endpoint that the SDK should expose.
+
+        Utilisez ce template quand Engine a deja, ou devrait avoir, un endpoint a exposer dans le SDK.
+  - type: input
+    id: endpoint
+    attributes:
+      label: Engine endpoint
+      description: Example: GET /api/search/products
+    validations:
+      required: true
+  - type: input
+    id: namespace
+    attributes:
+      label: Proposed SDK namespace
+      description: Example: client.search.products
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Explain the UI, BOBO, or integration flow this unlocks.
+    validations:
+      required: true
+  - type: textarea
+    id: types
+    attributes:
+      label: Request/response shape
+      description: Add known fields or link to Engine controller/docs.
+    validations:
+      required: false

@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible SDK problem
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for SDK behavior that fails in a repeatable way.
+
+        Utilisez ce template pour un probleme SDK reproductible.
+  - type: input
+    id: version
+    attributes:
+      label: SDK version
+      description: Example: @yaatal/client@0.1.0-beta.0 or GitHub commit SHA.
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime
+      description: Node, Expo, React Native, browser, Cloudflare Worker, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the method called, inputs, and Engine URL type if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

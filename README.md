@@ -179,6 +179,9 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 |---|---|
 | UI / BOBO app work | [UI Integration Guide](docs/UI-INTEGRATION.md) |
 | Beta tester setup | [Beta Sandbox Guide](docs/BETA-SANDBOX.md) |
+| Quick code examples | [Examples](examples/README.md) |
+| Roadmap review | [Roadmap](ROADMAP.md) |
+| Release notes | [Changelog](CHANGELOG.md) |
 | API contract review | [API SDK Contract](docs/API-SDK-CONTRACT.md) |
 | Endpoint coverage review | [API Endpoint Inventory](docs/API-ENDPOINT-INVENTORY.md) |
 | BYO AI integration | [BYO AI Integration](docs/BYO-AI-INTEGRATION.md) |
@@ -190,6 +193,7 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 npm run test:contracts
 npm run build
 npm run test:pack-install
+npm run example:node-smoke
 npm publish --dry-run --tag beta --access public
 ```
 
@@ -382,6 +386,9 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 |---|---|
 | UI / app BOBO | [Guide d'intégration UI](docs/UI-INTEGRATION.md) |
 | Test beta | [Guide sandbox beta](docs/BETA-SANDBOX.md) |
+| Exemples rapides | [Exemples](examples/README.md) |
+| Roadmap | [Feuille de route](ROADMAP.md) |
+| Notes de release | [Changelog](CHANGELOG.md) |
 | Revue contrat API | [Contrat API SDK](docs/API-SDK-CONTRACT.md) |
 | Couverture endpoints | [Inventaire endpoints API](docs/API-ENDPOINT-INVENTORY.md) |
 | IA externe | [Intégration IA externe](docs/BYO-AI-INTEGRATION.md) |
@@ -393,6 +400,7 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 npm run test:contracts
 npm run build
 npm run test:pack-install
+npm run example:node-smoke
 npm publish --dry-run --tag beta --access public
 ```
 
