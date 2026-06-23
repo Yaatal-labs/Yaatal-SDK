@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
     "test:contracts": "node ./scripts/contract-smoke.mjs",
     "test:pack-install": "node ./scripts/pack-install-smoke.mjs",
     "example:node-smoke": "node ./examples/node-smoke.mjs",
