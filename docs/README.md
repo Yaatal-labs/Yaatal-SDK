@@ -1,6 +1,6 @@
 # SDK Documentation / Documentation SDK
 
-[English](#english) | [Français](#francais)
+[English](#english) | [Français](#français)
 
 ## English
 
@@ -32,7 +32,7 @@ npm run example:node-smoke
 npm publish --dry-run --tag beta --access public
 ```
 
-## Francais
+## Français
 
 Commencez par le [README](../README.md) racine si vous voulez seulement
 installer le SDK, configurer une URL Engine ou brancher l'UI BOBO.
@@ -40,10 +40,10 @@ installer le SDK, configurer une URL Engine ou brancher l'UI BOBO.
 | Fichier | Usage |
 |---|---|
 | `../CONTRIBUTING.md` | Setup contributeur et attentes PR |
-| `../ROADMAP.md` | Direction SDK beta, V1 et plus tard |
+| `../ROADMAP.md` | Direction SDK beta, V1 et suite |
 | `../CHANGELOG.md` | Notes de release |
-| `../SECURITY.md` | Guide de signalement securite prive |
-| `../examples/README.md` | Exemples executables et copiables |
+| `../SECURITY.md` | Guide de signalement de sécurité privé |
+| `../examples/README.md` | Exemples exécutables et copiables |
 | `UI-INTEGRATION.md` | Comment le code BOBO/UI devrait appeler le SDK |
 | `BETA-SANDBOX.md` | Setup sandbox staging pour contributeurs et testeurs |
 | `API-SDK-CONTRACT.md` | Endpoints Engine couverts par `@yaatal/client` V1 |
@@ -51,7 +51,7 @@ installer le SDK, configurer une URL Engine ou brancher l'UI BOBO.
 | `BYO-AI-INTEGRATION.md` | Comment brancher un service IA externe avec la frontière SDK |
 | `deployment/sdk-v1-rollout-checklist.md` | Checklist smoke pour une URL Engine déployée |
 
-### Vérifications Locales
+### Vérifications locales
 
 ```bash
 npm ci
