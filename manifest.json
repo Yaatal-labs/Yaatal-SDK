@@ -1,0 +1,848 @@
+{
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "yaatal.catalog",
+      "namespace": "products",
+      "description": "Product catalog management.",
+      "actions": [
+        {
+          "name": "list",
+          "method": "products.list",
+          "rw": "R",
+          "description": "List products with optional filtering and pagination.",
+          "params": [
+            {
+              "name": "page",
+              "type": "integer",
+              "description": "Page number (1-based)."
+            },
+            {
+              "name": "per_page",
+              "type": "integer",
+              "description": "Items per page."
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "description": "Filter by category."
+            },
+            {
+              "name": "merchant_id",
+              "type": "string",
+              "description": "Filter by merchant id."
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "Free-text search query."
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "method": "products.get",
+          "rw": "R",
+          "description": "Fetch a single product by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Product id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "create",
+          "method": "products.create",
+          "rw": "W",
+          "description": "Create a new product.",
+          "params": [
+            {
+              "name": "name",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "price_cents",
+              "type": "integer",
+              "required": true
+            },
+            {
+              "name": "stock",
+              "type": "integer",
+              "required": true
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "string"
+            },
+            {
+              "name": "discount_price_cents",
+              "type": "integer"
+            },
+            {
+              "name": "images",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "update",
+          "method": "products.update",
+          "rw": "W",
+          "description": "Update an existing product by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Product id.",
+              "positional": true
+            },
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "type": "string"
+            },
+            {
+              "name": "price_cents",
+              "type": "integer"
+            },
+            {
+              "name": "discount_price_cents",
+              "type": "integer"
+            },
+            {
+              "name": "stock",
+              "type": "integer"
+            },
+            {
+              "name": "category",
+              "type": "string"
+            },
+            {
+              "name": "images",
+              "type": "string"
+            },
+            {
+              "name": "is_active",
+              "type": "boolean"
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "method": "products.remove",
+          "rw": "W",
+          "description": "Delete a product by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Product id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "upvote",
+          "method": "products.upvote",
+          "rw": "W",
+          "description": "Upvote a product by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Product id.",
+              "positional": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "yaatal.orders",
+      "namespace": "orders",
+      "description": "Order lifecycle management.",
+      "actions": [
+        {
+          "name": "create",
+          "method": "orders.create",
+          "rw": "W",
+          "description": "Create a new order.",
+          "params": [
+            {
+              "name": "seller_id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "required": true,
+              "description": "Array of { product_id, quantity }."
+            },
+            {
+              "name": "payment_method",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "delivery_method",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "method": "orders.list",
+          "rw": "R",
+          "description": "List orders with pagination.",
+          "params": [
+            {
+              "name": "page",
+              "type": "integer"
+            },
+            {
+              "name": "per_page",
+              "type": "integer"
+            }
+          ]
+        },
+        {
+          "name": "me",
+          "method": "orders.me",
+          "rw": "R",
+          "description": "List the current user's orders.",
+          "params": [
+            {
+              "name": "page",
+              "type": "integer"
+            },
+            {
+              "name": "per_page",
+              "type": "integer"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "method": "orders.get",
+          "rw": "R",
+          "description": "Fetch a single order by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "update_status",
+          "method": "orders.updateStatus",
+          "rw": "W",
+          "description": "Update an order's status.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Order id.",
+              "positional": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": true,
+              "description": "One of: pending, confirmed, shipped, delivered, cancelled."
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "method": "orders.cancel",
+          "rw": "W",
+          "description": "Cancel an order by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Order id.",
+              "positional": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "yaatal.commerce",
+      "namespace": "bobo",
+      "description": "Bobo commerce, escrow payments, and KYC.",
+      "actions": [
+        {
+          "name": "checkout",
+          "method": "bobo.checkout",
+          "rw": "W",
+          "description": "Create a Bobo checkout (escrow-backed payment).",
+          "params": [
+            {
+              "name": "payment_method",
+              "type": "string",
+              "required": true,
+              "description": "'cash' or 'wave'."
+            },
+            {
+              "name": "buyer_id",
+              "type": "string"
+            },
+            {
+              "name": "seller_id",
+              "type": "string"
+            },
+            {
+              "name": "product_id",
+              "type": "string"
+            },
+            {
+              "name": "quantity",
+              "type": "integer"
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Array of { product_id, quantity }."
+            },
+            {
+              "name": "delivery_method",
+              "type": "string"
+            },
+            {
+              "name": "shipping_address",
+              "type": "string"
+            },
+            {
+              "name": "phone_number",
+              "type": "string"
+            },
+            {
+              "name": "payer_msisdn",
+              "type": "string"
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "payment_status",
+          "method": "bobo.paymentStatus",
+          "rw": "R",
+          "description": "Check the payment status of a Bobo order.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "integer",
+              "required": true,
+              "description": "Bobo order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "create_order",
+          "method": "bobo.createOrder",
+          "rw": "W",
+          "description": "Create a raw Bobo escrow order.",
+          "params": [
+            {
+              "name": "merchant_id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "total_xof",
+              "type": "integer",
+              "required": true
+            },
+            {
+              "name": "delivery_lat",
+              "type": "number"
+            },
+            {
+              "name": "delivery_lng",
+              "type": "number"
+            }
+          ]
+        },
+        {
+          "name": "list_orders",
+          "method": "bobo.listOrders",
+          "rw": "R",
+          "description": "List Bobo orders.",
+          "params": [
+            {
+              "name": "limit",
+              "type": "integer"
+            }
+          ]
+        },
+        {
+          "name": "get_order",
+          "method": "bobo.getOrder",
+          "rw": "R",
+          "description": "Fetch a single Bobo order (with escrow) by id.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "integer",
+              "required": true,
+              "description": "Bobo order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "escrow",
+          "method": "bobo.escrow",
+          "rw": "R",
+          "description": "Fetch the escrow record for a Bobo order.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "integer",
+              "required": true,
+              "description": "Bobo order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "confirm_delivery",
+          "method": "bobo.confirmDelivery",
+          "rw": "W",
+          "description": "Confirm delivery for a Bobo order, releasing escrow.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "integer",
+              "required": true,
+              "description": "Bobo order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "dispute",
+          "method": "bobo.dispute",
+          "rw": "W",
+          "description": "Open a dispute on a Bobo order.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "integer",
+              "required": true,
+              "description": "Bobo order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "method": "bobo.cancel",
+          "rw": "W",
+          "description": "Cancel a Bobo order.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "integer",
+              "required": true,
+              "description": "Bobo order id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "submit_kyc",
+          "method": "bobo.submitKyc",
+          "rw": "W",
+          "description": "Submit KYC information for Bobo onboarding.",
+          "params": [
+            {
+              "name": "provider",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "document_hash_b64",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "jurisdiction",
+              "type": "string",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "kyc_status",
+          "method": "bobo.kycStatus",
+          "rw": "R",
+          "description": "Check the current user's KYC status.",
+          "params": []
+        }
+      ]
+    },
+    {
+      "name": "yaatal.delivery",
+      "namespace": "delivery",
+      "description": "Delivery tracking and management.",
+      "actions": [
+        {
+          "name": "create",
+          "method": "delivery.create",
+          "rw": "W",
+          "description": "Create a delivery request for an order.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "method",
+              "type": "string"
+            },
+            {
+              "name": "pickup_address",
+              "type": "string"
+            },
+            {
+              "name": "dropoff_address",
+              "type": "string"
+            },
+            {
+              "name": "dropoff_lat",
+              "type": "number"
+            },
+            {
+              "name": "dropoff_lng",
+              "type": "number"
+            },
+            {
+              "name": "phone_number",
+              "type": "string"
+            },
+            {
+              "name": "notes",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "method": "delivery.list",
+          "rw": "R",
+          "description": "List deliveries with optional filters.",
+          "params": [
+            {
+              "name": "order_id",
+              "type": "string"
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Delivery status."
+            },
+            {
+              "name": "limit",
+              "type": "integer"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "method": "delivery.get",
+          "rw": "R",
+          "description": "Fetch a single delivery by id.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Delivery id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "update_status",
+          "method": "delivery.updateStatus",
+          "rw": "W",
+          "description": "Update the status of a delivery.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Delivery id.",
+              "positional": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": true,
+              "description": "New delivery status."
+            },
+            {
+              "name": "proof_note",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "confirm",
+          "method": "delivery.confirm",
+          "rw": "W",
+          "description": "Confirm a delivery (mark as delivered with proof).",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Delivery id.",
+              "positional": true
+            },
+            {
+              "name": "proof_note",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "yaatal.search",
+      "namespace": "search",
+      "description": "Cross-resource search (products, merchants, orders).",
+      "actions": [
+        {
+          "name": "products",
+          "method": "search.products",
+          "rw": "R",
+          "description": "Search the product catalog.",
+          "params": [
+            {
+              "name": "q",
+              "type": "string",
+              "description": "Search query (alias: query)."
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Alias for q."
+            },
+            {
+              "name": "page",
+              "type": "integer"
+            },
+            {
+              "name": "per_page",
+              "type": "integer"
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Alias for per_page."
+            },
+            {
+              "name": "category",
+              "type": "string"
+            },
+            {
+              "name": "merchant_id",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "name": "merchants",
+          "method": "search.merchants",
+          "rw": "R",
+          "description": "Search merchants.",
+          "params": [
+            {
+              "name": "q",
+              "type": "string",
+              "description": "Search query (alias: query)."
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Alias for q."
+            },
+            {
+              "name": "page",
+              "type": "integer"
+            },
+            {
+              "name": "per_page",
+              "type": "integer"
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Alias for per_page."
+            }
+          ]
+        },
+        {
+          "name": "orders",
+          "method": "search.orders",
+          "rw": "R",
+          "description": "Search orders.",
+          "params": [
+            {
+              "name": "q",
+              "type": "string",
+              "description": "Search query (alias: query)."
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Alias for q."
+            },
+            {
+              "name": "page",
+              "type": "integer"
+            },
+            {
+              "name": "per_page",
+              "type": "integer"
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Alias for per_page."
+            },
+            {
+              "name": "status",
+              "type": "string"
+            },
+            {
+              "name": "role",
+              "type": "string",
+              "description": "'buyer' or 'seller'."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "yaatal.notifications",
+      "namespace": "notifications",
+      "description": "User notification management.",
+      "actions": [
+        {
+          "name": "list",
+          "method": "notifications.list",
+          "rw": "R",
+          "description": "List notifications for the current user.",
+          "params": [
+            {
+              "name": "limit",
+              "type": "integer"
+            }
+          ]
+        },
+        {
+          "name": "unread_count",
+          "method": "notifications.unreadCount",
+          "rw": "R",
+          "description": "Get the count of unread notifications.",
+          "params": []
+        },
+        {
+          "name": "mark_read",
+          "method": "notifications.markRead",
+          "rw": "W",
+          "description": "Mark a single notification as read.",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Notification id.",
+              "positional": true
+            }
+          ]
+        },
+        {
+          "name": "mark_all_read",
+          "method": "notifications.markAllRead",
+          "rw": "W",
+          "description": "Mark all notifications as read.",
+          "params": []
+        }
+      ]
+    },
+    {
+      "name": "yaatal.analytics",
+      "namespace": "analytics",
+      "description": "Analytics event tracking and identification.",
+      "actions": [
+        {
+          "name": "track",
+          "method": "analytics.track",
+          "rw": "W",
+          "description": "Track an analytics event.",
+          "params": [
+            {
+              "name": "event",
+              "type": "string",
+              "required": true,
+              "description": "Event name."
+            },
+            {
+              "name": "properties",
+              "type": "object",
+              "description": "Arbitrary event properties."
+            }
+          ]
+        },
+        {
+          "name": "identify",
+          "method": "analytics.identify",
+          "rw": "W",
+          "description": "Identify the current user with traits.",
+          "params": [
+            {
+              "name": "traits",
+              "type": "object",
+              "description": "User trait key/value pairs."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

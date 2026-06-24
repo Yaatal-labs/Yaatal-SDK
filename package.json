@@ -32,7 +32,9 @@
     "example:node-smoke": "node ./examples/node-smoke.mjs",
     "check": "npm run test:contracts && npm run build && npm run test:pack-install",
     "test": "npm run test:contracts",
-    "prepublishOnly": "npm run test:contracts && npm run build && npm run test:pack-install"
+    "prepublishOnly": "npm run test:contracts && npm run build && npm run test:pack-install",
+    "generate:manifest": "node ./scripts/generate-tool-manifest.mjs",
+    "mcp:start": "node ./scripts/mcp-server.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
