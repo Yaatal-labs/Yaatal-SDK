@@ -173,6 +173,49 @@ const checkout = await client.bobo.checkout({
 await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
+### CLI
+
+The package also ships a `yaatal` kernel CLI — a small, agent-first command
+surface over the same client, for driving Engine from a terminal or from an
+agent's tool loop instead of hand-writing `fetch`/`curl` calls.
+
+```bash
+npm run build   # produces dist/cli.js
+npx yaatal --help
+```
+
+Configure it with environment variables (no CLI flags for these):
+
+```bash
+export YAATAL_ENGINE_URL=http://localhost:5150   # required
+export YAATAL_TOKEN=<jwt>                        # optional bearer token
+```
+
+Commands:
+
+```text
+yaatal products list [--limit N]
+yaatal products get <id>
+yaatal orders list
+yaatal orders get <id>
+yaatal deliveries list [--order-id X]
+yaatal deliveries get <id>
+yaatal deliveries confirm-by-code <code>
+yaatal search products <query>
+yaatal auth login --email E --password P
+```
+
+Every command prints one JSON value to stdout on success (exit `0`). Failures
+never print prose: API/network errors print `{"error":..., "status":...}` to
+stderr and exit `1`; bad usage (missing command, missing `YAATAL_ENGINE_URL`,
+unknown flags) prints the same shape and exits `2`. There are no interactive
+prompts, so it is safe to call from an agent's tool loop. `yaatal --help` and
+`yaatal <command> --help` both print the full one-page reference above.
+
+Agent integration note: if you are wiring an agent to this SDK, list `yaatal`
+under an "Available CLIs" section in that agent's `CLAUDE.md`/`AGENTS.md`
+rather than having it call `@yaatal/client` via raw HTTP.
+
 ### Contributor Paths
 
 | Contributor | Start Here |
@@ -192,14 +235,17 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```bash
 npm run test:contracts
 npm run build
+npm run test:cli
 npm run test:pack-install
 npm run example:node-smoke
 npm publish --dry-run --tag beta --access public
 ```
 
 `test:contracts` checks the source contract without external services. `build`
-generates the publishable `dist/` files. `test:pack-install` packs the package,
-installs it into a temporary consumer app, and imports `@yaatal/client` through
+generates the publishable `dist/` files. `test:cli` builds against a stub
+HTTP engine and exercises the `yaatal` CLI end to end. `test:pack-install`
+packs the package, installs it into a temporary consumer app, and imports
+`@yaatal/client` through
 the package export.
 
 ### Boundaries

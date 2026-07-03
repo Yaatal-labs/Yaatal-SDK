@@ -4,6 +4,16 @@
 a minimal MCP server). The Engine owns all business state; this package owns request shapes, auth
 headers, typed responses, and API errors. See `README.md` and `ROADMAP.md`.
 
+## Available CLIs
+
+- `yaatal` (`src/cli.ts`, built to `dist/cli.js`, `bin` entry in `package.json`) — the kernel CLI
+  wrapping this package's client. Agent-first: every command prints one JSON value to stdout on
+  success (exit 0); API/network errors print `{"error":..., "status":...}` to stderr (exit 1);
+  usage errors print the same shape (exit 2). No interactive prompts. Config via
+  `YAATAL_ENGINE_URL` (required) and `YAATAL_TOKEN` (optional). Run `yaatal --help` for the full
+  command reference (`products`, `orders`, `deliveries`, `search`, `auth`). See the README's "CLI"
+  section for details, and `scripts/cli-smoke.mjs` (`npm run test:cli`) for the runnable check.
+
 ## Development policy — Ponytail (lazy senior dev mode)
 
 Agent-written code in this repo follows the [Ponytail](https://github.com/DietrichGebert/ponytail)
