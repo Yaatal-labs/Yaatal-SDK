@@ -41,6 +41,8 @@ export {
 } from "./client.js";
 export { DeliveryClient } from "./delivery.js";
 export type {
+  ConfirmDeliveryByCodeRequest,
+  ConfirmDeliveryByCodeResponse,
   ConfirmDeliveryRequest,
   CreateDeliveryRequest,
   Delivery,
