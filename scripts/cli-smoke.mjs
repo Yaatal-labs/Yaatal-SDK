@@ -68,6 +68,71 @@ function startStubEngine() {
       return send(404, { error: "order not found" });
     }
 
+    if (req.method === "GET" && req.url?.startsWith("/api/harness/proposals")) {
+      assert(
+        req.url === "/api/harness/proposals?status=Proposed",
+        `unexpected proposals list query: ${req.url}`,
+      );
+      return send(200, [
+        {
+          id: "prop-1",
+          kind: "RaiseTimeout",
+          tool: "yaatal",
+          change: { RaiseTimeout: { tool: "yaatal", from_ms: 30000, to_ms: 60000 } },
+          rationale: "timed out twice",
+          evidence_runs: 2,
+          status: "Proposed",
+          created_at: "2026-01-01T00:00:00Z",
+          decided_at: null,
+          decided_by: null,
+        },
+      ]);
+    }
+
+    if (
+      req.method === "POST" &&
+      req.url === "/api/harness/proposals/prop-1/approve"
+    ) {
+      return send(200, {
+        id: "prop-1",
+        kind: "RaiseTimeout",
+        tool: "yaatal",
+        change: null,
+        rationale: "timed out twice",
+        evidence_runs: 2,
+        status: "Approved",
+        created_at: "2026-01-01T00:00:00Z",
+        decided_at: "2026-01-02T00:00:00Z",
+        decided_by: "reviewer-1",
+      });
+    }
+
+    if (
+      req.method === "POST" &&
+      req.url === "/api/harness/proposals/prop-decided/reject"
+    ) {
+      return send(400, { error: "proposal already Approved" });
+    }
+
+    if (req.method === "GET" && req.url?.startsWith("/api/social/events")) {
+      assert(
+        req.url === "/api/social/events?platform=whatsapp&limit=5",
+        `unexpected social events query: ${req.url}`,
+      );
+      return send(200, [
+        {
+          id: "evt-1",
+          platform: "whatsapp",
+          kind: "message.text",
+          external_id: "wamid.1",
+          sender: "221770000001",
+          body: "hello",
+          received_at: "2026-01-02T00:00:00Z",
+          created_at: "2026-01-02T00:00:01Z",
+        },
+      ]);
+    }
+
     return send(404, { error: `unhandled stub route: ${req.method} ${req.url}` });
   });
 
@@ -133,6 +198,48 @@ try {
     assert(parsed.status === 404, `expected status 404 in error JSON, got ${JSON.stringify(parsed)}`);
   }
 
+  // proposals list --status -> success, exit 0, JSON on stdout
+  {
+    const result = await runCli(["proposals", "list", "--status", "Proposed"], {
+      YAATAL_ENGINE_URL: baseUrl,
+    });
+    assert(result.status === 0, `proposals list exited ${result.status}: ${result.stderr}`);
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.length === 1 && parsed[0].id === "prop-1", "proposals list did not return stubbed body");
+  }
+
+  // proposals approve -> success, exit 0
+  {
+    const result = await runCli(["proposals", "approve", "prop-1"], {
+      YAATAL_ENGINE_URL: baseUrl,
+    });
+    assert(result.status === 0, `proposals approve exited ${result.status}: ${result.stderr}`);
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.status === "Approved", "proposals approve did not return decided proposal");
+    assert(parsed.decided_by === "reviewer-1", "proposals approve missing decided_by");
+  }
+
+  // proposals reject on an already-decided proposal -> exit 1, 400 in error JSON
+  {
+    const result = await runCli(["proposals", "reject", "prop-decided"], {
+      YAATAL_ENGINE_URL: baseUrl,
+    });
+    assert(result.status === 1, `proposals reject (400) exited ${result.status}, expected 1`);
+    const parsed = JSON.parse(result.stderr.trim());
+    assert(parsed.status === 400, `expected status 400 in error JSON, got ${JSON.stringify(parsed)}`);
+  }
+
+  // social events --platform --limit -> success, exit 0, JSON on stdout
+  {
+    const result = await runCli(
+      ["social", "events", "--platform", "whatsapp", "--limit", "5"],
+      { YAATAL_ENGINE_URL: baseUrl },
+    );
+    assert(result.status === 0, `social events exited ${result.status}: ${result.stderr}`);
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.length === 1 && parsed[0].id === "evt-1", "social events did not return stubbed body");
+  }
+
   // usage error: missing YAATAL_ENGINE_URL -> exit 2
   {
     const env = { ...process.env };
@@ -161,6 +268,8 @@ try {
     assert(result.status === 0, `--help exited ${result.status}`);
     assert(result.stdout.includes("YAATAL_ENGINE_URL"), "--help did not document env vars");
     assert(result.stdout.includes("deliveries confirm-by-code"), "--help did not list commands");
+    assert(result.stdout.includes("proposals approve"), "--help did not list proposals commands");
+    assert(result.stdout.includes("social events"), "--help did not list social commands");
   }
 
   console.log("CLI smoke passed");

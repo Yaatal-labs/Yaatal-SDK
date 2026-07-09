@@ -51,6 +51,12 @@ export type {
   UpdateDeliveryStatusRequest,
 } from "./delivery.js";
 export { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
+export { HarnessClient } from "./harness.js";
+export type {
+  HarnessProposal,
+  ListProposalsParams,
+  ProposalStatus,
+} from "./harness.js";
 export { YaatalApiError, type FetchLike } from "./http.js";
 export { NotificationsClient } from "./notifications.js";
 export type {
@@ -90,4 +96,6 @@ export type {
   SearchProductsParams,
   SearchProductsResponse,
 } from "./search.js";
+export { SocialClient } from "./social.js";
+export type { ListSocialEventsParams, SocialEvent } from "./social.js";
 export type { JsonObject, JsonValue } from "./types.js";

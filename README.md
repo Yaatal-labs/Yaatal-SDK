@@ -42,6 +42,8 @@ The package exposes:
 | `client.notifications` | in-app notification records |
 | `client.analytics` | authenticated `track` and `identify` |
 | `client.bobo` | BOBO checkout, orders, escrow, and KYC bridge helpers |
+| `client.harness` | Yaatal Harness L1 proposal review (list/approve/reject) |
+| `client.social` | inbound social-channel events (WhatsApp, Telegram, ...) |
 
 There is no `client.ai` in V1. Apps can bring their own AI service and call
 Engine through the SDK. See [BYO AI Integration](docs/BYO-AI-INTEGRATION.md).
@@ -201,6 +203,10 @@ yaatal orders get <id>
 yaatal deliveries list [--order-id X]
 yaatal deliveries get <id>
 yaatal deliveries confirm-by-code <code>
+yaatal proposals list [--status <s>]
+yaatal proposals approve <id>
+yaatal proposals reject <id>
+yaatal social events [--platform <p>] [--since <ts>] [--limit N]
 yaatal search products <query>
 yaatal auth login --email E --password P
 ```
@@ -294,6 +300,8 @@ Le package expose:
 | `client.notifications` | notifications in-app |
 | `client.analytics` | `track` et `identify` authentifiés |
 | `client.bobo` | checkout, commandes, escrow et KYC BOBO |
+| `client.harness` | revue des propositions L1 du Yaatal Harness (list/approve/reject) |
+| `client.social` | événements sociaux entrants (WhatsApp, Telegram, ...) |
 
 Il n'y a pas de `client.ai` en V1. Chaque app peut brancher son propre service
 IA et appeler Engine via le SDK. Voir

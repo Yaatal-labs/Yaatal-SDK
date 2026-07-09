@@ -58,6 +58,10 @@ Commands:
   deliveries list [--order-id X]
   deliveries get <id>
   deliveries confirm-by-code <code>
+  proposals list [--status <s>]
+  proposals approve <id>
+  proposals reject <id>
+  social events [--platform <p>] [--since <ts>] [--limit N]
   search products <query>
   auth login --email E --password P
 
@@ -174,6 +178,52 @@ async function deliveriesCommand(
   }
 }
 
+async function proposalsCommand(
+  client: YaatalClient,
+  sub: string | undefined,
+  rest: string[],
+): Promise<unknown> {
+  switch (sub) {
+    case "list": {
+      const { status } = parseFlags(rest, { status: { type: "string" } });
+      return client.harness.list(status === undefined ? {} : { status });
+    }
+    case "approve":
+      return client.harness.approve(
+        requirePositional(rest, "proposals approve <id>"),
+      );
+    case "reject":
+      return client.harness.reject(
+        requirePositional(rest, "proposals reject <id>"),
+      );
+    default:
+      throw new UsageError(`unknown proposals subcommand: ${sub ?? "(none)"}`);
+  }
+}
+
+async function socialCommand(
+  client: YaatalClient,
+  sub: string | undefined,
+  rest: string[],
+): Promise<unknown> {
+  switch (sub) {
+    case "events": {
+      const { platform, since, limit } = parseFlags(rest, {
+        platform: { type: "string" },
+        since: { type: "string" },
+        limit: { type: "string" },
+      });
+      return client.social.events({
+        ...(platform === undefined ? {} : { platform }),
+        ...(since === undefined ? {} : { since }),
+        ...(limit === undefined ? {} : { limit: requireInt(limit, "--limit") }),
+      });
+    }
+    default:
+      throw new UsageError(`unknown social subcommand: ${sub ?? "(none)"}`);
+  }
+}
+
 async function searchCommand(
   client: YaatalClient,
   sub: string | undefined,
@@ -223,6 +273,10 @@ async function dispatch(
       return ordersCommand(client, sub, rest);
     case "deliveries":
       return deliveriesCommand(client, sub, rest);
+    case "proposals":
+      return proposalsCommand(client, sub, rest);
+    case "social":
+      return socialCommand(client, sub, rest);
     case "search":
       return searchCommand(client, sub, rest);
     case "auth":

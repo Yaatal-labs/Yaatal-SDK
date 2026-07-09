@@ -19,7 +19,7 @@ real Engine contracts.
 ### V1
 
 - Stabilize auth, products, orders, delivery, search, notifications, analytics,
-  and BOBO bridge methods.
+  BOBO bridge methods, Harness proposal review, and social events.
 - Document all request and response types.
 - Keep CI green on supported Node versions.
 - Add examples only when they help UI contributors test real flows.
@@ -50,7 +50,8 @@ et suivre les vrais contrats Engine.
 ### V1
 
 - Stabiliser auth, produits, commandes, livraison, recherche, notifications,
-  analytics et les helpers BOBO bridge.
+  analytics, les helpers BOBO bridge, la revue des propositions Harness, et
+  les événements sociaux.
 - Documenter les types request/response.
 - Garder CI verte sur les versions Node supportees.
 - Ajouter des exemples seulement quand ils aident les contributeurs UI a tester
