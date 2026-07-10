@@ -25,10 +25,12 @@ const files = {
   analytics: read("src/analytics.ts"),
   bobo: read("src/bobo.ts"),
   delivery: read("src/delivery.ts"),
+  harness: read("src/harness.ts"),
   notifications: read("src/notifications.ts"),
   orders: read("src/orders.ts"),
   products: read("src/products.ts"),
   search: read("src/search.ts"),
+  social: read("src/social.ts"),
   index: read("src/index.ts"),
 };
 
@@ -37,10 +39,12 @@ for (const namespace of [
   "auth",
   "bobo",
   "delivery",
+  "harness",
   "notifications",
   "products",
   "orders",
   "search",
+  "social",
 ]) {
   assertContains("client.ts", files.client, `readonly ${namespace}:`);
 }
@@ -63,6 +67,11 @@ const expectedRoutes = {
     "/status",
     "/confirm",
   ],
+  harness: [
+    "/api/harness/proposals",
+    "/approve",
+    "/reject",
+  ],
   notifications: [
     "/api/notifications",
     "/api/notifications/unread-count",
@@ -83,6 +92,9 @@ const expectedRoutes = {
     "/api/search/products",
     "/api/search/merchants",
     "/api/search/orders",
+  ],
+  social: [
+    "/api/social/events",
   ],
 };
 
@@ -110,10 +122,12 @@ for (const exported of [
   "AnalyticsClient",
   "BoboClient",
   "DeliveryClient",
+  "HarnessClient",
   "NotificationsClient",
   "OrdersClient",
   "ProductsClient",
   "SearchClient",
+  "SocialClient",
   "JsonObject",
   "JsonValue",
 ]) {

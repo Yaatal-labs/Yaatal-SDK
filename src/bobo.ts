@@ -35,6 +35,8 @@ export interface BoboCheckoutRequest {
   phone_number?: string;
   payer_msisdn?: string;
   idempotency_key?: string;
+  /** Livestream session that drove this checkout (QR deep-link attribution). */
+  live_session_id?: string;
 }
 
 export interface BoboCheckoutOrder {

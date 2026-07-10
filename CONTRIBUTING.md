@@ -36,6 +36,7 @@ npm run example:node-smoke
 ```bash
 npm run test:contracts
 npm run build
+npm run test:cli
 npm run test:pack-install
 npm run example:node-smoke
 git diff --check
@@ -77,6 +78,7 @@ npm run example:node-smoke
 ```bash
 npm run test:contracts
 npm run build
+npm run test:cli
 npm run test:pack-install
 npm run example:node-smoke
 git diff --check

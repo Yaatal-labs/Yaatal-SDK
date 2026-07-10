@@ -25,6 +25,8 @@ export interface Order {
   payment_status: PaymentStatus;
   delivery_method: string;
   total_cents: number;
+  /** Livestream session that drove this order (QR deep-link attribution). */
+  live_session_id?: string | null;
   items: OrderItem[];
   created_at: string;
   updated_at: string | null;
@@ -52,6 +54,8 @@ export interface CreateOrderRequest {
   items: CreateOrderItemRequest[];
   payment_method: string;
   delivery_method: string;
+  /** Livestream session that drove this order (QR deep-link attribution). */
+  live_session_id?: string;
 }
 
 export interface UpdateOrderStatusRequest {
