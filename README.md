@@ -48,6 +48,12 @@ The package exposes:
 There is no `client.ai` in V1. Apps can bring their own AI service and call
 Engine through the SDK. See [BYO AI Integration](docs/BYO-AI-INTEGRATION.md).
 
+Separately, `createStaticMerchantQr` / `createDynamicMerchantQr` /
+`validatePiSpiQrPayload` (`src/pispi.ts`) are plain, offline functions — not
+an Engine-backed `client.*` namespace — for generating BCEAO PI-SPI
+interoperable payment-QR payloads locally. See [CLI](#cli) below for the
+`yaatal pispi qr` command.
+
 ### Install
 
 After npm publication:
@@ -209,7 +215,22 @@ yaatal proposals reject <id>
 yaatal social events [--platform <p>] [--since <ts>] [--limit N]
 yaatal search products <query>
 yaatal auth login --email E --password P
+yaatal pispi qr --alias <uuid-v4> [--amount <xof>] [--name <s>] [--city <s>] [--ref <s>] [--country <cc>]
 ```
+
+`pispi qr` generates a BCEAO PI-SPI interoperable payment-QR (EMVCo payload,
+GUID `int.bceao.pi`, currency `952`/XOF) fully offline via BCEAO's official
+`@pi-spi/qrcode` package — it makes no Engine call and needs no
+`YAATAL_ENGINE_URL`. `--alias` must be a UUID v4 (the package's own
+validator rejects anything else, despite one non-UUID example surviving in
+that package's own README — see `src/pispi.ts` for the discrepancy).
+Passing `--amount` produces a DYNAMIC QR; omitting it produces a STATIC one.
+`--name`/`--city` are accepted for interface stability but currently have no
+effect on the payload — this package version hardcodes EMV tags 59/60 to a
+placeholder. **Honesty note:** this only generates format-valid QR payloads;
+a real merchant alias comes solely from PI-SPI onboarding, so scanning one of
+these QRs in production requires that registration first (see
+Yaatal-Engine's `docs/PISPI-API-NOTES.md`).
 
 Every command prints one JSON value to stdout on success (exit `0`). Failures
 never print prose: API/network errors print `{"error":..., "status":...}` to
@@ -242,6 +263,7 @@ rather than having it call `@yaatal/client` via raw HTTP.
 npm run test:contracts
 npm run build
 npm run test:cli
+npm run test:pispi
 npm run test:pack-install
 npm run example:node-smoke
 npm publish --dry-run --tag beta --access public
@@ -249,9 +271,10 @@ npm publish --dry-run --tag beta --access public
 
 `test:contracts` checks the source contract without external services. `build`
 generates the publishable `dist/` files. `test:cli` builds against a stub
-HTTP engine and exercises the `yaatal` CLI end to end. `test:pack-install`
-packs the package, installs it into a temporary consumer app, and imports
-`@yaatal/client` through
+HTTP engine and exercises the `yaatal` CLI end to end. `test:pispi` exercises
+offline PI-SPI QR generation (`src/pispi.ts`) with a dummy UUID-v4 alias.
+`test:pack-install` packs the package, installs it into a temporary consumer
+app, and imports `@yaatal/client` through
 the package export.
 
 ### Boundaries
