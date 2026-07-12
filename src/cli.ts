@@ -8,6 +8,8 @@
 // @ts-expect-error -- no @types/node; parseArgs is typed by ParseArgsFn below.
 import { parseArgs as nodeParseArgs } from "node:util";
 import {
+  createDynamicMerchantQr,
+  createStaticMerchantQr,
   createYaatalClient,
   YaatalApiError,
   type YaatalClient,
@@ -64,6 +66,18 @@ Commands:
   social events [--platform <p>] [--since <ts>] [--limit N]
   search products <query>
   auth login --email E --password P
+  pispi qr --alias <uuid-v4> [--amount <xof>] [--name <s>] [--city <s>] [--ref <s>] [--country <cc>]
+
+pispi qr:
+  Generates a BCEAO PI-SPI interoperable payment-QR payload offline (no
+  Engine call). --alias must be a UUID v4 (the package's own validator
+  rejects anything else). --amount present -> DYNAMIC QR; omitted -> STATIC.
+  --ref sets the payer-facing reference label (default "YAATAL"); --country
+  is a UEMOA ISO2 code (default "SN"). --name/--city are accepted but
+  currently have no effect on the payload -- see src/pispi.ts. Format-valid
+  QRs generate today; scanning them in production requires a real merchant
+  alias from PI-SPI onboarding (see Yaatal-Engine's
+  docs/PISPI-API-NOTES.md).
 
 Output contract:
   Success            -> JSON result on stdout, exit 0
@@ -260,6 +274,54 @@ async function authCommand(
   }
 }
 
+async function pispiCommand(
+  sub: string | undefined,
+  rest: string[],
+): Promise<unknown> {
+  switch (sub) {
+    case "qr": {
+      const values = parseFlags(rest, {
+        alias: { type: "string" },
+        amount: { type: "string" },
+        name: { type: "string" },
+        city: { type: "string" },
+        ref: { type: "string" },
+        country: { type: "string" },
+      });
+      const alias = values.alias;
+      if (!alias) {
+        throw new UsageError("pispi qr requires --alias <uuid-v4>");
+      }
+
+      const input = {
+        alias,
+        countryCode: values.country ?? "SN",
+        referenceLabel: values.ref ?? "YAATAL",
+        ...(values.name === undefined ? {} : { merchantName: values.name }),
+        ...(values.city === undefined ? {} : { merchantCity: values.city }),
+      };
+
+      try {
+        return values.amount === undefined
+          ? createStaticMerchantQr(input)
+          : createDynamicMerchantQr({
+              ...input,
+              amount: requireInt(values.amount, "--amount"),
+            });
+      } catch (err) {
+        // @pi-spi/qrcode throws a plain Error on any invalid input (alias
+        // not UUID v4, unsupported country code, referenceLabel too long,
+        // ...). This command is pure/offline -- no network call happens --
+        // so any error thrown here is by definition a usage error, not an
+        // API/network failure.
+        throw new UsageError(err instanceof Error ? err.message : String(err));
+      }
+    }
+    default:
+      throw new UsageError(`unknown pispi subcommand: ${sub ?? "(none)"}`);
+  }
+}
+
 async function dispatch(
   client: YaatalClient,
   command: string,
@@ -297,6 +359,14 @@ async function run(argv: string[]): Promise<number> {
   try {
     if (!command) {
       throw new UsageError("missing command; run: yaatal --help");
+    }
+
+    // pispi qr is pure/offline (no Engine call) -- it must not require
+    // YAATAL_ENGINE_URL, unlike every other command below.
+    if (command === "pispi") {
+      const result = await pispiCommand(sub, rest);
+      printJson(result);
+      return 0;
     }
 
     const engineUrl = process.env["YAATAL_ENGINE_URL"];

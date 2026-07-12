@@ -270,6 +270,58 @@ try {
     assert(result.stdout.includes("deliveries confirm-by-code"), "--help did not list commands");
     assert(result.stdout.includes("proposals approve"), "--help did not list proposals commands");
     assert(result.stdout.includes("social events"), "--help did not list social commands");
+    assert(result.stdout.includes("pispi qr"), "--help did not list the pispi qr command");
+  }
+
+  // pispi qr is pure/offline: no YAATAL_ENGINE_URL needed at all, and no
+  // stub-engine route is registered for it above.
+  const DUMMY_ALIAS = "3497a720-ab11-4973-9619-534e04f263a1";
+
+  // pispi qr --alias (no --amount) -> STATIC, exit 0, no env var required
+  {
+    const env = { ...process.env };
+    delete env.YAATAL_ENGINE_URL;
+    const result = await execFileAsync(
+      process.execPath,
+      [cliPath, "pispi", "qr", "--alias", DUMMY_ALIAS],
+      { encoding: "utf8", env },
+    ).then(
+      ({ stdout, stderr }) => ({ status: 0, stdout, stderr }),
+      (err) => ({ status: err.code, stdout: err.stdout ?? "", stderr: err.stderr ?? "" }),
+    );
+    assert(result.status === 0, `pispi qr (static) exited ${result.status}: ${result.stderr}`);
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.type === "STATIC", `expected STATIC, got ${parsed.type}`);
+    assert(parsed.payload.includes("int.bceao.pi"), "pispi qr static payload missing BCEAO GUID");
+  }
+
+  // pispi qr --alias --amount -> DYNAMIC, exit 0
+  {
+    const result = await runCli(
+      ["pispi", "qr", "--alias", DUMMY_ALIAS, "--amount", "2500", "--ref", "ORDER-42"],
+      { YAATAL_ENGINE_URL: baseUrl },
+    );
+    assert(result.status === 0, `pispi qr (dynamic) exited ${result.status}: ${result.stderr}`);
+    const parsed = JSON.parse(result.stdout.trim());
+    assert(parsed.type === "DYNAMIC", `expected DYNAMIC, got ${parsed.type}`);
+    assert(parsed.payload.includes("952"), "pispi qr dynamic payload missing XOF currency 952");
+  }
+
+  // pispi qr with an invalid (non-UUID-v4) alias -> usage error, exit 2
+  {
+    const result = await runCli(
+      ["pispi", "qr", "--alias", "not-a-uuid"],
+      { YAATAL_ENGINE_URL: baseUrl },
+    );
+    assert(result.status === 2, `pispi qr (bad alias) exited ${result.status}, expected 2`);
+    const parsed = JSON.parse(result.stderr.trim());
+    assert(parsed.status === null, "pispi qr bad-alias error should be a usage error (status null)");
+  }
+
+  // pispi qr with no --alias -> usage error, exit 2
+  {
+    const result = await runCli(["pispi", "qr"], { YAATAL_ENGINE_URL: baseUrl });
+    assert(result.status === 2, `pispi qr (missing alias) exited ${result.status}, expected 2`);
   }
 
   console.log("CLI smoke passed");

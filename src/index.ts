@@ -76,6 +76,18 @@ export type {
   PaymentStatus,
   UpdateOrderStatusRequest,
 } from "./orders.js";
+export {
+  createDynamicMerchantQr,
+  createStaticMerchantQr,
+  validatePiSpiQrPayload,
+} from "./pispi.js";
+export type {
+  PiSpiDynamicQrInput,
+  PiSpiMerchantQrInput,
+  PiSpiQrResult,
+  PiSpiQrType,
+  PiSpiQrValidationResult,
+} from "./pispi.js";
 export { ProductsClient } from "./products.js";
 export type {
   CreateProductRequest,

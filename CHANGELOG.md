@@ -11,6 +11,9 @@ Les changements importants du SDK doivent etre notes ici.
 - Initial standalone `@yaatal/client` package.
 - Typed clients for auth, products, orders, delivery, search, notifications,
   analytics, and BOBO commerce bridge APIs.
+- Offline BCEAO PI-SPI interoperable payment-QR generation (`src/pispi.ts`,
+  `yaatal pispi qr` CLI command) over BCEAO's official `@pi-spi/qrcode`
+  package — no Engine call required.
 - Package smoke tests for contract shape and installability.
 - Bilingual GitHub onboarding, UI integration, sandbox, and contribution docs.
 
