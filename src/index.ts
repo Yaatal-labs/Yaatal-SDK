@@ -34,6 +34,12 @@ export type {
   BoboPaymentStatus,
   BoboSubmitKycRequest,
 } from "./bobo.js";
+export { CatalogClient } from "./catalog.js";
+export type {
+  CatalogList,
+  CatalogProduct,
+  ListCatalogParams,
+} from "./catalog.js";
 export {
   createYaatalClient,
   YaatalClient,
@@ -58,6 +64,8 @@ export type {
   ProposalStatus,
 } from "./harness.js";
 export { YaatalApiError, type FetchLike } from "./http.js";
+export { LiveSessionsClient } from "./live-sessions.js";
+export type { CurrentSessionProducts, LiveSession } from "./live-sessions.js";
 export { NotificationsClient } from "./notifications.js";
 export type {
   ListNotificationsParams,
