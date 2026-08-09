@@ -181,6 +181,19 @@ const checkout = await client.bobo.checkout({
 await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
+Paying with PI-SPI sends a real request-to-pay, so it needs the buyer's payment
+address (SHID) — the compiler requires `pispi_alias` for that method:
+
+```ts
+const checkout = await client.bobo.checkout({
+  items: [{ product_id: "product-id", quantity: 1 }],
+  payment_method: "pispi",
+  pispi_alias: "9b1b2499-3e50-435b-b757-ac7a83d8aa8c",
+  delivery_method: "bobo_managed",
+  idempotency_key: crypto.randomUUID(),
+});
+```
+
 ### CLI
 
 The package also ships a `yaatal` kernel CLI — a small, agent-first command
@@ -455,6 +468,20 @@ const checkout = await client.bobo.checkout({
 });
 
 await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
+```
+
+Le paiement PI-SPI declenche une vraie demande de paiement : il exige donc
+l'adresse de paiement (SHID) de l'acheteur. Le compilateur impose
+`pispi_alias` pour cette methode :
+
+```ts
+const checkout = await client.bobo.checkout({
+  items: [{ product_id: "product-id", quantity: 1 }],
+  payment_method: "pispi",
+  pispi_alias: "9b1b2499-3e50-435b-b757-ac7a83d8aa8c",
+  delivery_method: "bobo_managed",
+  idempotency_key: crypto.randomUUID(),
+});
 ```
 
 ### Chemins Pour Contribuer

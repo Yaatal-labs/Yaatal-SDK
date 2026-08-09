@@ -1,6 +1,6 @@
 import type { EngineHttpClient } from "./http.js";
 
-export type BoboPaymentMethod = "cash" | "wave";
+export type BoboPaymentMethod = "cash" | "wave" | "pispi";
 
 export type BoboPaymentStatus = "pending" | "succeeded" | "failed" | "reversed";
 
@@ -23,13 +23,12 @@ export interface BoboCheckoutItem {
   quantity: number;
 }
 
-export interface BoboCheckoutRequest {
+export interface BoboCheckoutFields {
   buyer_id?: string;
   seller_id?: string;
   product_id?: string;
   quantity?: number;
   items?: BoboCheckoutItem[];
-  payment_method: BoboPaymentMethod;
   delivery_method?: string;
   shipping_address?: string;
   phone_number?: string;
@@ -38,6 +37,24 @@ export interface BoboCheckoutRequest {
   /** Livestream session that drove this checkout (QR deep-link attribution). */
   live_session_id?: string;
 }
+
+/**
+ * A PI-SPI checkout carries a payer address; the other rails do not have one.
+ *
+ * The Engine sends a real request-to-pay at checkout, and an RTP has to be
+ * *addressed* to someone — it answers 400 for a "pispi" checkout without
+ * `pispi_alias`. Modelling that as a union means the compiler catches it
+ * instead of the network.
+ *
+ * `pispi_alias` is the buyer's PI-SPI payment address (SHID): 36 characters in
+ * UUID layout, the same identifier `pispi.buildMerchantQrPayload` validates.
+ * `payer_msisdn` is not a substitute — a phone may be *registered* as an alias
+ * by a natural person, but the API Business carries the SHID, and legal
+ * entities have no phone-alias option at all.
+ */
+export type BoboCheckoutRequest =
+  | (BoboCheckoutFields & { payment_method: "cash" | "wave" })
+  | (BoboCheckoutFields & { payment_method: "pispi"; pispi_alias: string });
 
 export interface BoboCheckoutOrder {
   id: string;
@@ -198,3 +215,20 @@ export class BoboClient {
     return this.http.request<BoboKyc>("/api/bobo/kyc");
   }
 }
+
+// The check behind the union above, run by `tsc` on every build and erased
+// entirely from the output. A "pispi" checkout without a payer address must
+// not typecheck — that request is a guaranteed 400 from the Engine, and the
+// point of a typed client is to say so before the network does.
+type Assert<T extends true> = T;
+type _PispiCheckoutRequiresAlias = Assert<
+  { payment_method: "pispi" } extends BoboCheckoutRequest ? false : true
+>;
+type _PispiCheckoutWithAliasIsValid = Assert<
+  { payment_method: "pispi"; pispi_alias: string } extends BoboCheckoutRequest
+    ? true
+    : false
+>;
+type _OtherRailsNeedNoAlias = Assert<
+  { payment_method: "wave" } extends BoboCheckoutRequest ? true : false
+>;

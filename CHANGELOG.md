@@ -14,6 +14,11 @@ Les changements importants du SDK doivent etre notes ici.
 - Offline BCEAO PI-SPI interoperable payment-QR generation (`src/pispi.ts`,
   `yaatal pispi qr` CLI command) over BCEAO's official `@pi-spi/qrcode`
   package — no Engine call required.
+- `"pispi"` as a BOBO checkout payment method, with `pispi_alias` (the buyer's
+  36-character PI-SPI payment address). `BoboCheckoutRequest` is now a union, so
+  omitting the alias on a PI-SPI checkout is a compile error rather than a 400:
+  the Engine sends a real request-to-pay at checkout, and an RTP has to be
+  addressed to someone.
 - Package smoke tests for contract shape and installability.
 - Bilingual GitHub onboarding, UI integration, sandbox, and contribution docs.
 
