@@ -181,15 +181,25 @@ const checkout = await client.bobo.checkout({
 await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
-Paying with PI-SPI sends a real request-to-pay, so it needs the buyer's payment
-address (SHID) — the compiler requires `pispi_alias` for that method:
+PI-SPI has two flows. Omit `pispi_alias` for the **QR** flow — the merchant
+presents a dynamic QR (`client.pispi.buildMerchantQrPayload`) carrying the order
+reference, the buyer scans it, and the Engine settles by polling. Supply the
+buyer's 36-character payment address to send a **request-to-pay** instead:
 
 ```ts
+// QR: nothing to collect from the buyer.
 const checkout = await client.bobo.checkout({
   items: [{ product_id: "product-id", quantity: 1 }],
   payment_method: "pispi",
-  pispi_alias: "9b1b2499-3e50-435b-b757-ac7a83d8aa8c",
   delivery_method: "bobo_managed",
+  idempotency_key: crypto.randomUUID(),
+});
+
+// RTP: addressed to a payment address the buyer already gave you.
+await client.bobo.checkout({
+  items: [{ product_id: "product-id", quantity: 1 }],
+  payment_method: "pispi",
+  pispi_alias: "9b1b2499-3e50-435b-b757-ac7a83d8aa8c",
   idempotency_key: crypto.randomUUID(),
 });
 ```
@@ -470,15 +480,17 @@ const checkout = await client.bobo.checkout({
 await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
-Le paiement PI-SPI declenche une vraie demande de paiement : il exige donc
-l'adresse de paiement (SHID) de l'acheteur. Le compilateur impose
-`pispi_alias` pour cette methode :
+PI-SPI propose deux flux. Sans `pispi_alias`, c'est le flux **QR** : le
+marchand affiche un QR dynamique (`client.pispi.buildMerchantQrPayload`)
+portant la reference de commande, l'acheteur le scanne, et le moteur regle par
+polling. Avec l'adresse de paiement (36 caracteres) de l'acheteur, c'est une
+**demande de paiement** qui lui est adressee :
 
 ```ts
+// QR : rien a demander a l'acheteur.
 const checkout = await client.bobo.checkout({
   items: [{ product_id: "product-id", quantity: 1 }],
   payment_method: "pispi",
-  pispi_alias: "9b1b2499-3e50-435b-b757-ac7a83d8aa8c",
   delivery_method: "bobo_managed",
   idempotency_key: crypto.randomUUID(),
 });

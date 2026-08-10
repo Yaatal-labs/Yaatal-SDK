@@ -39,22 +39,27 @@ export interface BoboCheckoutFields {
 }
 
 /**
- * A PI-SPI checkout carries a payer address; the other rails do not have one.
+ * PI-SPI has two flows, and `pispi_alias` is what picks between them.
  *
- * The Engine sends a real request-to-pay at checkout, and an RTP has to be
- * *addressed* to someone — it answers 400 for a "pispi" checkout without
- * `pispi_alias`. Modelling that as a union means the compiler catches it
- * instead of the network.
+ * **Pull (QR)** — omit it. The merchant presents a dynamic QR carrying the
+ * order reference; the buyer scans it with their bank app. Nothing is
+ * addressed to the buyer, so there is nothing to collect. This is the flow to
+ * use unless you have a specific reason not to: a buyer does not know their
+ * payment address by heart.
  *
- * `pispi_alias` is the buyer's PI-SPI payment address (SHID): 36 characters in
- * UUID layout, the same identifier `pispi.buildMerchantQrPayload` validates.
- * `payer_msisdn` is not a substitute — a phone may be *registered* as an alias
- * by a natural person, but the API Business carries the SHID, and legal
- * entities have no phone-alias option at all.
+ * **Push (RTP)** — supply it, and the Engine sends a request-to-pay addressed
+ * to that buyer. `pispi_alias` is their PI-SPI payment address (SHID): 36
+ * characters in UUID layout, the same identifier `pispi.buildMerchantQrPayload`
+ * validates. `payer_msisdn` is not a substitute — a phone may be *registered*
+ * as an alias by a natural person, but the API Business carries the SHID, and
+ * legal entities have no phone-alias option at all. The Engine answers 400 for
+ * an alias that is present but not a payment address.
  */
-export type BoboCheckoutRequest =
-  | (BoboCheckoutFields & { payment_method: "cash" | "wave" })
-  | (BoboCheckoutFields & { payment_method: "pispi"; pispi_alias: string });
+export type BoboCheckoutRequest = BoboCheckoutFields & {
+  payment_method: BoboPaymentMethod;
+  /** PI-SPI only. Omit for the QR flow; supply a 36-character SHID for an RTP. */
+  pispi_alias?: string;
+};
 
 export interface BoboCheckoutOrder {
   id: string;
@@ -216,19 +221,21 @@ export class BoboClient {
   }
 }
 
-// The check behind the union above, run by `tsc` on every build and erased
-// entirely from the output. A "pispi" checkout without a payer address must
-// not typecheck — that request is a guaranteed 400 from the Engine, and the
-// point of a typed client is to say so before the network does.
+// The checks behind the type above, run by `tsc` on every build and erased
+// entirely from the output.
 type Assert<T extends true> = T;
-type _PispiCheckoutRequiresAlias = Assert<
-  { payment_method: "pispi" } extends BoboCheckoutRequest ? false : true
+// Omitting the alias is the QR flow, not an error — the compiler must not
+// demand a value the caller has no way to obtain.
+type _PispiQrFlowNeedsNoAlias = Assert<
+  { payment_method: "pispi" } extends BoboCheckoutRequest ? true : false
 >;
-type _PispiCheckoutWithAliasIsValid = Assert<
+// And the RTP flow can still carry one.
+type _PispiRtpFlowTakesAnAlias = Assert<
   { payment_method: "pispi"; pispi_alias: string } extends BoboCheckoutRequest
     ? true
     : false
 >;
-type _OtherRailsNeedNoAlias = Assert<
-  { payment_method: "wave" } extends BoboCheckoutRequest ? true : false
+// An alias is not a free-form string field on other rails.
+type _AliasIsPispiShaped = Assert<
+  BoboCheckoutRequest["pispi_alias"] extends string | undefined ? true : false
 >;
