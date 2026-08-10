@@ -22,6 +22,8 @@ const {
   createDynamicMerchantQr,
   createStaticMerchantQr,
   validatePiSpiQrPayload,
+  parsePiSpiAlias,
+  isPiSpiAliasShaped,
 } = await import(indexPath);
 
 // A syntactically valid, non-registered UUID v4 -- format-valid only, not a
@@ -104,3 +106,54 @@ const DUMMY_ALIAS = "3497a720-ab11-4973-9619-534e04f263a1";
 }
 
 console.log("PI-SPI QR smoke passed");
+
+// Alias extraction from a scanned QR -- the step that spares a buyer typing a
+// 36-character UUID at checkout. Round-trips against a payload this package
+// generated, which is the only payload we can produce without a real one.
+{
+  const { payload } = createStaticMerchantQr({
+    alias: DUMMY_ALIAS,
+    countryCode: "SN",
+    referenceLabel: "SCAN_ME",
+  });
+  assert(
+    parsePiSpiAlias(payload) === DUMMY_ALIAS,
+    `alias round-trip failed: got ${parsePiSpiAlias(payload)}`,
+  );
+
+  // A dynamic payload carries an amount, which shifts every later TLV offset.
+  // Reading the alias must not depend on where tag 36 happens to sit.
+  const dynamic = createDynamicMerchantQr({
+    alias: DUMMY_ALIAS,
+    countryCode: "SN",
+    referenceLabel: "SCAN_ME_2",
+    amount: 15000,
+  });
+  assert(
+    parsePiSpiAlias(dynamic.payload) === DUMMY_ALIAS,
+    "alias round-trip failed for a dynamic payload",
+  );
+
+  // Anything that is not a valid PI-SPI QR yields null, never a guess. A
+  // checkout that accepted a stranger's identifier here would address the
+  // payment request to the wrong person.
+  for (const junk of [
+    "",
+    "hello world",
+    "https://example.com/pay",
+    payload.slice(0, payload.length - 4), // truncated: CRC no longer matches
+    payload.replace("int.bceao.pi", "int.example.xx"),
+  ]) {
+    assert(
+      parsePiSpiAlias(junk) === null,
+      `expected null for non-PI-SPI payload: ${junk.slice(0, 40)}`,
+    );
+  }
+
+  assert(isPiSpiAliasShaped(DUMMY_ALIAS), "dummy alias should be alias-shaped");
+  for (const bad of ["", "221770000000", DUMMY_ALIAS.slice(0, 20)]) {
+    assert(!isPiSpiAliasShaped(bad), `${bad} must not be alias-shaped`);
+  }
+}
+
+console.log("PI-SPI alias parsing smoke passed");

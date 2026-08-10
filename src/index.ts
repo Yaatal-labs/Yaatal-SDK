@@ -80,6 +80,8 @@ export {
   createDynamicMerchantQr,
   createStaticMerchantQr,
   validatePiSpiQrPayload,
+  parsePiSpiAlias,
+  isPiSpiAliasShaped,
 } from "./pispi.js";
 export type {
   PiSpiDynamicQrInput,

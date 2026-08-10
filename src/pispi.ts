@@ -124,3 +124,68 @@ export function createDynamicMerchantQr(
  * `@pi-spi/qrcode`.
  */
 export { isValidPispiQrPayload as validatePiSpiQrPayload };
+
+/**
+ * Extracts the PI-SPI alias from a scanned QR payload, or `null` if the
+ * payload is not a valid PI-SPI QR.
+ *
+ * This is the piece a checkout needs to spare a buyer from typing a
+ * 36-character UUID. BCEAO's own web widget (`@pi-spi/checkout`) offers
+ * "scan / import a QR" at its alias step and auto-submits on a valid one; it
+ * takes the decoder as a caller-supplied `decodeQrPayload` callback rather
+ * than shipping it, so this is that callback.
+ *
+ * The alias lives in EMV tag `36` (Merchant Account Information), sub-tag
+ * `01`, under GUID sub-`00` = `"int.bceao.pi"` — the layout documented in
+ * Yaatal-Engine's `docs/PISPI-CONTRACT.md` §"tag 36". Validation is delegated:
+ * the payload must pass the package's own CRC/structure check, and the
+ * extracted value must be a payment address.
+ *
+ * ponytail: a minimal TLV walk over the top level, not a general EMVCo parser
+ * — the ceiling is that it reads tag 36 and nothing else. That is all a
+ * checkout needs. Upgrade path is `@pi-spi/qrcode` exposing a decoder, at
+ * which point this delegates to it.
+ */
+export function parsePiSpiAlias(payload: string): string | null {
+  if (!isValidPispiQrPayload(payload).valid) return null;
+  const merchantAccount = readTlv(payload, "36");
+  if (merchantAccount === null) return null;
+  // Confirm this really is a PI-SPI account block before trusting sub-01:
+  // other schemes use tag 36 too, and returning their identifier as an alias
+  // would send a payment request to a stranger.
+  if (readTlv(merchantAccount, "00") !== "int.bceao.pi") return null;
+  const alias = readTlv(merchantAccount, "01");
+  return alias !== null && isPiSpiAliasShaped(alias) ? alias : null;
+}
+
+/**
+ * Is this string shaped like a PI-SPI payment address (SHID)?
+ *
+ * UUID v4 layout, which is what the underlying package's `validateAlias()`
+ * enforces — see the file header on the README/code mismatch this follows.
+ */
+export function isPiSpiAliasShaped(alias: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    alias,
+  );
+}
+
+/**
+ * One pass over `EMVCo ID + 2-digit length + value` segments, returning the
+ * value for `id`. Returns `null` on a malformed run rather than guessing —
+ * a truncated payload must not yield a half-read alias.
+ */
+function readTlv(data: string, id: string): string | null {
+  let i = 0;
+  while (i + 4 <= data.length) {
+    const tag = data.slice(i, i + 2);
+    const length = Number.parseInt(data.slice(i + 2, i + 4), 10);
+    if (!Number.isInteger(length) || length < 0) return null;
+    const start = i + 4;
+    const end = start + length;
+    if (end > data.length) return null;
+    if (tag === id) return data.slice(start, end);
+    i = end;
+  }
+  return null;
+}
