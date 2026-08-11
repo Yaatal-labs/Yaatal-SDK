@@ -178,9 +178,14 @@ export function isPiSpiAliasShaped(alias: string): boolean {
 function readTlv(data: string, id: string): string | null {
   let i = 0;
   while (i + 4 <= data.length) {
-    const tag = data.slice(i, i + 2);
-    const length = Number.parseInt(data.slice(i + 2, i + 4), 10);
-    if (!Number.isInteger(length) || length < 0) return null;
+    // An EMVCo header is exactly four ASCII digits — a 2-digit tag and a
+    // 2-digit length. Reject anything else rather than parse it: `parseInt`
+    // reads "0A" as 0, which would resync the scan onto the middle of a value
+    // and let a malformed payload keep looking well-formed.
+    const header = data.slice(i, i + 4);
+    if (!/^\d{4}$/.test(header)) return null;
+    const tag = header.slice(0, 2);
+    const length = Number(header.slice(2));
     const start = i + 4;
     const end = start + length;
     if (end > data.length) return null;

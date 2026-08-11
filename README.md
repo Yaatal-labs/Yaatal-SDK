@@ -182,7 +182,7 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
 PI-SPI has two flows. Omit `pispi_alias` for the **QR** flow — the merchant
-presents a dynamic QR (`client.pispi.buildMerchantQrPayload`) carrying the order
+presents a dynamic QR (the top-level `createDynamicMerchantQr`) carrying the order
 reference, the buyer scans it, and the Engine settles by polling. Supply the
 buyer's 36-character payment address to send a **request-to-pay** instead:
 
@@ -481,7 +481,7 @@ await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
 PI-SPI propose deux flux. Sans `pispi_alias`, c'est le flux **QR** : le
-marchand affiche un QR dynamique (`client.pispi.buildMerchantQrPayload`)
+marchand affiche un QR dynamique (`createDynamicMerchantQr`, export racine)
 portant la reference de commande, l'acheteur le scanne, et le moteur regle par
 polling. Avec l'adresse de paiement (36 caracteres) de l'acheteur, c'est une
 **demande de paiement** qui lui est adressee :

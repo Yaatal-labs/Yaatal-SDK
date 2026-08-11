@@ -49,8 +49,8 @@ export interface BoboCheckoutFields {
  *
  * **Push (RTP)** — supply it, and the Engine sends a request-to-pay addressed
  * to that buyer. `pispi_alias` is their PI-SPI payment address (SHID): 36
- * characters in UUID layout, the same identifier `pispi.buildMerchantQrPayload`
- * validates. `payer_msisdn` is not a substitute — a phone may be *registered*
+ * characters in UUID layout, the same shape `isPiSpiAliasShaped` checks and
+ * `parsePiSpiAlias` reads out of a scanned QR. `payer_msisdn` is not a substitute — a phone may be *registered*
  * as an alias by a natural person, but the API Business carries the SHID, and
  * legal entities have no phone-alias option at all. The Engine answers 400 for
  * an alias that is present but not a payment address.
