@@ -54,6 +54,11 @@ const expectedRoutes = {
     "/api/analytics/track",
     "/api/analytics/identify",
   ],
+  delivery: [
+    "/api/delivery/drivers",
+    "/api/delivery/assign",
+    "/api/delivery/preferences",
+  ],
   bobo: [
     "/api/bobo/checkout",
     "/api/bobo/orders",

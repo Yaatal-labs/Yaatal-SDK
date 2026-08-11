@@ -55,6 +55,12 @@ export type {
   DeliveryStatus,
   ListDeliveriesParams,
   UpdateDeliveryStatusRequest,
+  DeliveryDriver,
+  RegisterDriverRequest,
+  DriverList,
+  AssignDeliveryRequest,
+  MerchantDeliveryPreferences,
+  UpdateMerchantDeliveryPreferences,
 } from "./delivery.js";
 export { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
 export { HarnessClient } from "./harness.js";
