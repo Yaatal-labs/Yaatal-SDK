@@ -34,6 +34,12 @@ export type {
   BoboPaymentStatus,
   BoboSubmitKycRequest,
 } from "./bobo.js";
+export { CatalogClient } from "./catalog.js";
+export type {
+  CatalogList,
+  CatalogProduct,
+  ListCatalogParams,
+} from "./catalog.js";
 export {
   createYaatalClient,
   YaatalClient,
@@ -49,6 +55,12 @@ export type {
   DeliveryStatus,
   ListDeliveriesParams,
   UpdateDeliveryStatusRequest,
+  DeliveryDriver,
+  RegisterDriverRequest,
+  DriverList,
+  AssignDeliveryRequest,
+  MerchantDeliveryPreferences,
+  UpdateMerchantDeliveryPreferences,
 } from "./delivery.js";
 export { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
 export { HarnessClient } from "./harness.js";
@@ -58,6 +70,8 @@ export type {
   ProposalStatus,
 } from "./harness.js";
 export { YaatalApiError, type FetchLike } from "./http.js";
+export { LiveSessionsClient } from "./live-sessions.js";
+export type { CurrentSessionProducts, LiveSession } from "./live-sessions.js";
 export { NotificationsClient } from "./notifications.js";
 export type {
   ListNotificationsParams,
@@ -80,6 +94,8 @@ export {
   createDynamicMerchantQr,
   createStaticMerchantQr,
   validatePiSpiQrPayload,
+  parsePiSpiAlias,
+  isPiSpiAliasShaped,
 } from "./pispi.js";
 export type {
   PiSpiDynamicQrInput,
