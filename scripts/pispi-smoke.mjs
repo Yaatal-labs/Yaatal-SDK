@@ -2,7 +2,7 @@
 // offline PI-SPI QR generation -- no stub engine, no network.
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const indexPath = join(root, "dist/index.js");
@@ -24,7 +24,7 @@ const {
   validatePiSpiQrPayload,
   parsePiSpiAlias,
   isPiSpiAliasShaped,
-} = await import(indexPath);
+} = await import(pathToFileURL(indexPath).href); // a file:// URL, so it also loads on Windows
 
 // A syntactically valid, non-registered UUID v4 -- format-valid only, not a
 // real onboarded PI-SPI merchant alias.

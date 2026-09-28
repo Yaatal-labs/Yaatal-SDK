@@ -34,7 +34,7 @@ The package exposes:
 
 | Namespace | Use |
 |---|---|
-| `client.auth` | login, registration, session/user helpers |
+| `client.auth` | login, registration, WhatsApp sign-in, bootstrap grants, session/user helpers |
 | `client.products` | product CRUD/listing backed by Engine |
 | `client.orders` | generic Engine order APIs |
 | `client.delivery` | generic delivery lifecycle APIs |
@@ -44,9 +44,50 @@ The package exposes:
 | `client.bobo` | BOBO checkout, orders, escrow, and KYC bridge helpers |
 | `client.harness` | Yaatal Harness L1 proposal review (list/approve/reject) |
 | `client.social` | inbound social-channel events (WhatsApp, Telegram, ...) |
+| `client.ai` | Engine's AI gateway: Engine picks the tier and model |
+| `client.voice` | audio transcription and live voice session URLs |
+| `client.livekit` | tokens for live audio/video rooms |
+| `client.inference` | the Yaatal API, OpenAI-compatible and billed in XOF (FCFA), when configured |
 
-There is no `client.ai` in V1. Apps can bring their own AI service and call
-Engine through the SDK. See [BYO AI Integration](docs/BYO-AI-INTEGRATION.md).
+Apps can still bring their own AI service; see
+[BYO AI Integration](docs/BYO-AI-INTEGRATION.md).
+
+### WhatsApp Sign-In
+
+The person starts the WhatsApp conversation, so no WhatsApp template is needed.
+
+```ts
+const attempt = await client.auth.startWhatsApp();
+window.open(attempt.whatsapp_url); // they send the prefilled message from their own WhatsApp
+// Poll until Engine has replied on WhatsApp with a 6-digit code:
+while (!(await client.auth.whatsappStatus(attempt.nonce)).code_sent) {
+  await new Promise(resolve => setTimeout(resolve, 2000));
+}
+await client.auth.verifyWhatsApp({ nonce: attempt.nonce, code: typedCode }); // token kept on the client
+```
+
+### Yaatal API (AI billed in FCFA)
+
+One OpenAI-compatible endpoint for every model Yaatal sells, billed per token from a prepaid
+balance in XOF. It has its own address and its own `yk_...` keys, separate from Engine sessions.
+Keep the key server-side.
+
+```ts
+import { createYaatalInference } from "@yaatal/client";
+
+const api = createYaatalInference({ baseUrl: process.env.YAATAL_API_URL, apiKey: process.env.YAATAL_API_KEY });
+
+const models = await api.models(); // public: ids and XOF prices per million tokens
+const reply = await api.chat({ model: models[0].id, messages: [{ role: "user", content: "Salaam" }] });
+
+for await (const chunk of api.chatStream({ model: models[0].id, messages })) {
+  process.stdout.write(chunk.choices[0]?.delta.content ?? "");
+}
+
+const { balance_xof } = await api.balance();
+```
+
+Any OpenAI SDK also works: set its base URL to `<YAATAL_API_URL>/v1` and use a Yaatal key.
 
 Separately, `createStaticMerchantQr` / `createDynamicMerchantQr` /
 `validatePiSpiQrPayload` (`src/pispi.ts`) are plain, offline functions — not
@@ -338,7 +379,7 @@ Le package expose:
 
 | Namespace | Usage |
 |---|---|
-| `client.auth` | login, inscription, session et utilisateur |
+| `client.auth` | login, inscription, connexion WhatsApp, grants bootstrap, session et utilisateur |
 | `client.products` | produits gérés par Engine |
 | `client.orders` | commandes génériques Engine |
 | `client.delivery` | cycle de vie livraison |
@@ -348,10 +389,14 @@ Le package expose:
 | `client.bobo` | checkout, commandes, escrow et KYC BOBO |
 | `client.harness` | revue des propositions L1 du Yaatal Harness (list/approve/reject) |
 | `client.social` | événements sociaux entrants (WhatsApp, Telegram, ...) |
+| `client.ai` | passerelle IA d'Engine : Engine choisit le tier et le modèle |
+| `client.voice` | transcription audio et URL de session vocale en direct |
+| `client.livekit` | tokens pour les salles audio/vidéo en direct |
+| `client.inference` | l'API Yaatal, compatible OpenAI et facturée en XOF (FCFA), si configurée |
 
-Il n'y a pas de `client.ai` en V1. Chaque app peut brancher son propre service
-IA et appeler Engine via le SDK. Voir
-[Intégration IA externe](docs/BYO-AI-INTEGRATION.md).
+Chaque app peut toujours brancher son propre service IA ; voir
+[Intégration IA externe](docs/BYO-AI-INTEGRATION.md). La connexion WhatsApp et l'API Yaatal
+sont décrites en exemple dans la partie anglaise ci-dessus.
 
 ### Installation
 

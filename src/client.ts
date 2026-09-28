@@ -1,3 +1,4 @@
+import { AiClient } from "./ai.js";
 import { AuthClient } from "./auth.js";
 import { AnalyticsClient } from "./analytics.js";
 import { BoboClient } from "./bobo.js";
@@ -7,11 +8,14 @@ import { LiveSessionsClient } from "./live-sessions.js";
 import { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
 import { HarnessClient } from "./harness.js";
 import { EngineHttpClient, type FetchLike } from "./http.js";
+import { YaatalInferenceClient, type YaatalInferenceOptions } from "./inference.js";
+import { LiveKitClient } from "./livekit.js";
 import { NotificationsClient } from "./notifications.js";
 import { OrdersClient } from "./orders.js";
 import { ProductsClient } from "./products.js";
 import { SearchClient } from "./search.js";
 import { SocialClient } from "./social.js";
+import { VoiceClient } from "./voice.js";
 
 export interface YaatalClientOptions {
   baseUrl?: string;
@@ -19,21 +23,30 @@ export interface YaatalClientOptions {
   fetch?: FetchLike;
   headers?: HeadersInit;
   env?: EngineRuntimeEnv;
+  /**
+   * The Yaatal API (OpenAI-compatible, billed in XOF). When set, `client.inference` is available.
+   * It is a separate service with its own key; see `createYaatalInference`.
+   */
+  inference?: YaatalInferenceOptions;
 }
 
 export class YaatalClient {
+  readonly ai: AiClient;
   readonly analytics: AnalyticsClient;
   readonly auth: AuthClient;
   readonly bobo: BoboClient;
   readonly catalog: CatalogClient;
   readonly delivery: DeliveryClient;
   readonly harness: HarnessClient;
+  readonly inference: YaatalInferenceClient | undefined;
+  readonly livekit: LiveKitClient;
   readonly liveSessions: LiveSessionsClient;
   readonly notifications: NotificationsClient;
   readonly products: ProductsClient;
   readonly orders: OrdersClient;
   readonly search: SearchClient;
   readonly social: SocialClient;
+  readonly voice: VoiceClient;
 
   private readonly http: EngineHttpClient;
 
@@ -49,18 +62,27 @@ export class YaatalClient {
       ...(options.headers === undefined ? {} : { headers: options.headers }),
     });
 
+    this.ai = new AiClient(this.http);
     this.analytics = new AnalyticsClient(this.http);
     this.auth = new AuthClient(this.http);
     this.bobo = new BoboClient(this.http);
     this.catalog = new CatalogClient(this.http);
     this.delivery = new DeliveryClient(this.http);
     this.harness = new HarnessClient(this.http);
+    this.inference = options.inference
+      ? new YaatalInferenceClient({
+          ...options.inference,
+          ...(options.inference.fetch === undefined && options.fetch !== undefined ? { fetch: options.fetch } : {}),
+        })
+      : undefined;
+    this.livekit = new LiveKitClient(this.http);
     this.liveSessions = new LiveSessionsClient(this.http);
     this.notifications = new NotificationsClient(this.http);
     this.products = new ProductsClient(this.http);
     this.orders = new OrdersClient(this.http);
     this.search = new SearchClient(this.http);
     this.social = new SocialClient(this.http);
+    this.voice = new VoiceClient(this.http);
   }
 
   setToken(token: string): void {

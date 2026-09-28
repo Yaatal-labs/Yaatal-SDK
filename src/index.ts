@@ -1,3 +1,5 @@
+export { AiClient } from "./ai.js";
+export type { EngineChatMessage, EngineChatRequest, EngineChatResponse } from "./ai.js";
 export { AnalyticsClient } from "./analytics.js";
 export type {
   AnalyticsIdentifyRequest,
@@ -14,6 +16,14 @@ export type {
   RegisterRequest,
   ResendVerificationRequest,
   ResetPasswordRequest,
+  BootstrapRedeemRequest,
+  BootstrapRedeemResponse,
+  BootstrapStartRequest,
+  BootstrapStartResponse,
+  BootstrapSurface,
+  WhatsAppLoginStart,
+  WhatsAppLoginStatus,
+  WhatsAppVerifyRequest,
 } from "./auth.js";
 export { BoboClient } from "./bobo.js";
 export type {
@@ -70,6 +80,21 @@ export type {
   ProposalStatus,
 } from "./harness.js";
 export { YaatalApiError, type FetchLike } from "./http.js";
+export { createYaatalInference, YaatalInferenceClient } from "./inference.js";
+export type {
+  Balance,
+  ChatCompletion,
+  ChatCompletionChunk,
+  ChatCompletionRequest,
+  ChatCompletionUsage,
+  ChatMessage,
+  LedgerEntry,
+  ModelPricing,
+  YaatalInferenceOptions,
+  YaatalModel,
+} from "./inference.js";
+export { LiveKitClient } from "./livekit.js";
+export type { LiveKitRoomType, LiveKitTokenRequest, LiveKitTokenResponse } from "./livekit.js";
 export { LiveSessionsClient } from "./live-sessions.js";
 export type { CurrentSessionProducts, LiveSession } from "./live-sessions.js";
 export { NotificationsClient } from "./notifications.js";
@@ -127,3 +152,5 @@ export type {
 export { SocialClient } from "./social.js";
 export type { ListSocialEventsParams, SocialEvent } from "./social.js";
 export type { JsonObject, JsonValue } from "./types.js";
+export { VoiceClient } from "./voice.js";
+export type { TranscribeOptions, TranscriptionResponse } from "./voice.js";

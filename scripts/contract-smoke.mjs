@@ -21,6 +21,11 @@ function assertNotContains(name, source, forbidden) {
 }
 
 const files = {
+  auth: read("src/auth.ts"),
+  ai: read("src/ai.ts"),
+  inference: read("src/inference.ts"),
+  livekit: read("src/livekit.ts"),
+  voice: read("src/voice.ts"),
   client: read("src/client.ts"),
   analytics: read("src/analytics.ts"),
   bobo: read("src/bobo.ts"),
@@ -35,6 +40,9 @@ const files = {
 };
 
 for (const namespace of [
+  "ai",
+  "livekit",
+  "voice",
   "analytics",
   "auth",
   "bobo",
@@ -50,6 +58,11 @@ for (const namespace of [
 }
 
 const expectedRoutes = {
+  auth: ["/api/auth/whatsapp/start", "/api/auth/whatsapp/status/", "/api/auth/whatsapp/verify", "/api/auth/bootstrap/start", "/api/auth/bootstrap", "/api/auth/verify/"],
+  ai: ["/api/ai/chat", "/api/ai/chat/sync"],
+  inference: ["/v1/models", "/v1/chat/completions", "/v1/balance"],
+  livekit: ["/api/livekit/token"],
+  voice: ["/api/voice/transcribe", "/api/voice/session"],
   analytics: [
     "/api/analytics/track",
     "/api/analytics/identify",
@@ -124,6 +137,11 @@ for (const [name, source] of Object.entries(files)) {
 }
 
 for (const exported of [
+  "AiClient",
+  "LiveKitClient",
+  "VoiceClient",
+  "YaatalInferenceClient",
+  "createYaatalInference",
   "AnalyticsClient",
   "BoboClient",
   "DeliveryClient",
