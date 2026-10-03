@@ -23,8 +23,8 @@ export interface EngineChatResponse {
 
 /**
  * Engine's own AI gateway: tiered routing, per-process budget and sensitivity rules. Requires a
- * signed-in client. For OpenAI-compatible, FCFA-metered calls with a Yaatal API key, use
- * `createYaatalInference` instead.
+ * signed-in client. For OpenAI-compatible, FCFA-metered calls with a Kairmel API key, use
+ * `createKairmelClient` instead.
  */
 export class AiClient {
   constructor(private readonly http: EngineHttpClient) {}

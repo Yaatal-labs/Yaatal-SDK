@@ -2,7 +2,7 @@
 // auth header and parsing, against a fake fetch that answers with Engine's response shapes.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createYaatalClient, createYaatalInference, YaatalApiError } from "../dist/index.js";
+import { createYaatalClient, createKairmelClient, KairmelApiError } from "../dist/index.js";
 
 const ENGINE = "https://engine.test";
 const API = "https://api.test";
@@ -99,13 +99,13 @@ test("LiveKit token", async () => {
   assert.deepEqual(calls[0].body, { room: "live-1", room_type: "broadcast" });
 });
 
-test("Yaatal API: public models with XOF prices, keyed chat and balance", async () => {
+test("Kairmel API: public models with XOF prices, keyed chat and balance", async () => {
   const { fetch, calls } = fakeFetch(url => {
-    if (url.endsWith("/v1/models")) return { object: "list", data: [{ id: "yaatal/nemotron-3-super", object: "model", owned_by: "yaatal", tier: "standard", pricing: { currency: "XOF", input_per_million: 600, output_per_million: 1800 }, max_output_tokens: 8192 }] };
-    if (url.endsWith("/v1/chat/completions")) return { id: "c1", object: "chat.completion", model: "yaatal/nemotron-3-super", choices: [{ index: 0, message: { role: "assistant", content: "Waaw" }, finish_reason: "stop" }], usage: { prompt_tokens: 3, completion_tokens: 1, total_tokens: 4 } };
+    if (url.endsWith("/v1/models")) return { object: "list", data: [{ id: "kairmel/nemotron-3-super", object: "model", owned_by: "yaatal", tier: "standard", pricing: { currency: "XOF", input_per_million: 600, output_per_million: 1800 }, max_output_tokens: 8192 }] };
+    if (url.endsWith("/v1/chat/completions")) return { id: "c1", object: "chat.completion", model: "kairmel/nemotron-3-super", choices: [{ index: 0, message: { role: "assistant", content: "Waaw" }, finish_reason: "stop" }], usage: { prompt_tokens: 3, completion_tokens: 1, total_tokens: 4 } };
     if (url.endsWith("/v1/balance")) return { balance_xof: 4998.5, recent: [] };
   });
-  const api = createYaatalInference({ baseUrl: `${API}/`, apiKey: "yk_test", fetch });
+  const api = createKairmelClient({ baseUrl: `${API}/`, apiKey: "yk_test", fetch });
 
   const [model] = await api.models();
   assert.equal(model.pricing.currency, "XOF");
@@ -119,18 +119,18 @@ test("Yaatal API: public models with XOF prices, keyed chat and balance", async 
   assert.equal(calls[1].url, `${API}/v1/chat/completions`);
 });
 
-test("Yaatal API: a stream yields every chunk, usage included, and stops at [DONE]", async () => {
-  const chunk = (content, extra = {}) => ({ id: "c1", object: "chat.completion.chunk", model: "yaatal/x", choices: [{ index: 0, delta: { content }, finish_reason: null }], ...extra });
+test("Kairmel API: a stream yields every chunk, usage included, and stops at [DONE]", async () => {
+  const chunk = (content, extra = {}) => ({ id: "c1", object: "chat.completion.chunk", model: "kairmel/x", choices: [{ index: 0, delta: { content }, finish_reason: null }], ...extra });
   const sse = [chunk("Wa"), chunk("aw"), chunk(null, { usage: { prompt_tokens: 3, completion_tokens: 2, total_tokens: 5 } })]
     .map(c => `data: ${JSON.stringify(c)}\n\n`).join("") + "data: [DONE]\n\n";
   // Split mid-line to prove partial lines are buffered.
   const cut = 37;
   const stream = new ReadableStream({ start(c) { const e = new TextEncoder(); c.enqueue(e.encode(sse.slice(0, cut))); c.enqueue(e.encode(sse.slice(cut))); c.close(); } });
   const { fetch, calls } = fakeFetch(() => new Response(stream, { headers: { "content-type": "text/event-stream" } }));
-  const api = createYaatalInference({ baseUrl: API, apiKey: "yk_test", fetch });
+  const api = createKairmelClient({ baseUrl: API, apiKey: "yk_test", fetch });
 
   let text = "", usage;
-  for await (const part of api.chatStream({ model: "yaatal/x", messages: [{ role: "user", content: "Salaam" }] })) {
+  for await (const part of api.chatStream({ model: "kairmel/x", messages: [{ role: "user", content: "Salaam" }] })) {
     text += part.choices[0]?.delta.content ?? "";
     usage = part.usage ?? usage;
   }
@@ -140,12 +140,17 @@ test("Yaatal API: a stream yields every chunk, usage included, and stops at [DON
   assert.deepEqual(calls[0].body.stream_options, { include_usage: true });
 });
 
-test("Yaatal API: errors carry status and body; missing config is explained", async () => {
+test("Kairmel API: errors carry status and body; a missing key is explained", async () => {
   const { fetch } = fakeFetch(() => Response.json({ error: { type: "insufficient_balance", message: "Solde épuisé." } }, { status: 402 }));
-  const api = createYaatalInference({ baseUrl: API, apiKey: "yk_test", fetch });
-  await assert.rejects(api.balance(), error => error instanceof YaatalApiError && error.status === 402 && error.body.error.type === "insufficient_balance");
-  assert.throws(() => createYaatalInference({ env: {} }), /YAATAL_API_URL/);
-  await assert.rejects(createYaatalInference({ baseUrl: API, env: {}, fetch }).balance(), /YAATAL_API_KEY/);
+  const api = createKairmelClient({ baseUrl: API, apiKey: "yk_test", fetch });
+  await assert.rejects(api.balance(), error => error instanceof KairmelApiError && error.status === 402 && error.body.error.type === "insufficient_balance");
+  await assert.rejects(createKairmelClient({ baseUrl: API, env: {}, fetch }).balance(), /KAIRMEL_API_KEY/);
+});
+
+test("Kairmel API: with no address configured, the client calls api.kairmel.com", async () => {
+  const { fetch, calls } = fakeFetch(() => ({ object: "list", data: [] }));
+  await createKairmelClient({ env: {}, fetch }).models();
+  assert.equal(calls[0].url, "https://api.kairmel.com/v1/models");
 });
 
 test("client.inference exists only when configured, and reuses the client's fetch", async () => {

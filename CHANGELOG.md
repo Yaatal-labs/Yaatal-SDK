@@ -7,7 +7,7 @@ Les changements importants du SDK doivent etre notes ici.
 ## 0.2.0-beta.0 - Unreleased
 
 Adds the Engine `main` routes apps and AI agents need next (reviewed against Engine merge #49,
-2026-09-11), and a client for the Yaatal API. No existing call changed.
+2026-09-11), and a client for the Kairmel API. No existing call changed.
 
 ### Added
 
@@ -16,7 +16,7 @@ Adds the Engine `main` routes apps and AI agents need next (reviewed against Eng
 - `client.ai`: Engine's AI gateway (`chat`, `chatSync`); Engine picks the model.
 - `client.voice`: `transcribe` (raw audio body) and `sessionUrl` (WebSocket).
 - `client.livekit`: `token` for live rooms.
-- `createYaatalInference` / `client.inference`: the Yaatal API, OpenAI-compatible, billed in XOF:
+- `createKairmelClient` / `client.inference`: the Kairmel API, OpenAI-compatible, billed in XOF:
   `models`, `chat`, `chatStream` (SSE, usage included), `balance`.
 - Behavioural tests (`npm run test:unit`) against a fake fetch for every new call.
 

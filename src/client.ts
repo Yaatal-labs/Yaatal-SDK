@@ -8,7 +8,7 @@ import { LiveSessionsClient } from "./live-sessions.js";
 import { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
 import { HarnessClient } from "./harness.js";
 import { EngineHttpClient, type FetchLike } from "./http.js";
-import { YaatalInferenceClient, type YaatalInferenceOptions } from "./inference.js";
+import { KairmelClient, type KairmelClientOptions } from "./inference.js";
 import { LiveKitClient } from "./livekit.js";
 import { NotificationsClient } from "./notifications.js";
 import { OrdersClient } from "./orders.js";
@@ -24,10 +24,10 @@ export interface YaatalClientOptions {
   headers?: HeadersInit;
   env?: EngineRuntimeEnv;
   /**
-   * The Yaatal API (OpenAI-compatible, billed in XOF). When set, `client.inference` is available.
-   * It is a separate service with its own key; see `createYaatalInference`.
+   * The Kairmel API (OpenAI-compatible, billed in XOF). When set, `client.inference` is available.
+   * It is a separate service with its own key; see `createKairmelClient`.
    */
-  inference?: YaatalInferenceOptions;
+  inference?: KairmelClientOptions;
 }
 
 export class YaatalClient {
@@ -38,7 +38,7 @@ export class YaatalClient {
   readonly catalog: CatalogClient;
   readonly delivery: DeliveryClient;
   readonly harness: HarnessClient;
-  readonly inference: YaatalInferenceClient | undefined;
+  readonly inference: KairmelClient | undefined;
   readonly livekit: LiveKitClient;
   readonly liveSessions: LiveSessionsClient;
   readonly notifications: NotificationsClient;
@@ -70,7 +70,7 @@ export class YaatalClient {
     this.delivery = new DeliveryClient(this.http);
     this.harness = new HarnessClient(this.http);
     this.inference = options.inference
-      ? new YaatalInferenceClient({
+      ? new KairmelClient({
           ...options.inference,
           ...(options.inference.fetch === undefined && options.fetch !== undefined ? { fetch: options.fetch } : {}),
         })

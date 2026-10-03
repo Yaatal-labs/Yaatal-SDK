@@ -80,7 +80,7 @@ export type {
   ProposalStatus,
 } from "./harness.js";
 export { YaatalApiError, type FetchLike } from "./http.js";
-export { createYaatalInference, YaatalInferenceClient } from "./inference.js";
+export { createKairmelClient, KairmelClient, KairmelApiError } from "./inference.js";
 export type {
   Balance,
   ChatCompletion,
@@ -88,10 +88,10 @@ export type {
   ChatCompletionRequest,
   ChatCompletionUsage,
   ChatMessage,
+  KairmelClientOptions,
+  KairmelModel,
   LedgerEntry,
   ModelPricing,
-  YaatalInferenceOptions,
-  YaatalModel,
 } from "./inference.js";
 export { LiveKitClient } from "./livekit.js";
 export type { LiveKitRoomType, LiveKitTokenRequest, LiveKitTokenResponse } from "./livekit.js";

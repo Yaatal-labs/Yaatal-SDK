@@ -1,17 +1,19 @@
-import { YaatalApiError, type FetchLike } from "./http.js";
+import type { FetchLike } from "./http.js";
 
-// The Yaatal API: one OpenAI-compatible endpoint for every model Yaatal sells, billed per token in
-// XOF (FCFA) from a prepaid balance. It is a separate service from Engine, with its own address and
-// its own API keys ("yk_..."), so it has its own client. Existing OpenAI SDKs work too: point their
-// base URL at `<baseUrl>/v1` and use a Yaatal API key.
+// The Kairmel API: one OpenAI-compatible endpoint for every model Kairmel sells, billed per token
+// in XOF (FCFA) from a prepaid balance. It is a separate service from the Yaatal Engine, with its
+// own address and its own API keys ("yk_..."), so it has its own client. Existing OpenAI SDKs work
+// too: point their base URL at `<baseUrl>/v1` and use a Kairmel API key.
 
-export interface YaatalInferenceOptions {
-  /** The Yaatal API origin, e.g. "https://api.example.com". Also read from YAATAL_API_URL. */
+const DEFAULT_BASE_URL = "https://api.kairmel.com";
+
+export interface KairmelClientOptions {
+  /** The Kairmel API origin. Also read from KAIRMEL_API_URL; defaults to https://api.kairmel.com. */
   baseUrl?: string;
-  /** A Yaatal API key. Also read from YAATAL_API_KEY. Keep it server-side. */
+  /** A Kairmel API key. Also read from KAIRMEL_API_KEY. Keep it server-side. */
   apiKey?: string;
   fetch?: FetchLike;
-  env?: { YAATAL_API_URL?: string; YAATAL_API_KEY?: string };
+  env?: { KAIRMEL_API_URL?: string; KAIRMEL_API_KEY?: string };
 }
 
 export interface ModelPricing {
@@ -23,8 +25,8 @@ export interface ModelPricing {
   output_per_million: number;
 }
 
-export interface YaatalModel {
-  /** Public id, e.g. "yaatal/nemotron-3-super". */
+export interface KairmelModel {
+  /** Public id, e.g. "kairmel/nemotron-3-super". */
   id: string;
   object: "model";
   owned_by: string;
@@ -41,7 +43,7 @@ export interface ChatMessage {
   tool_calls?: unknown[];
 }
 
-/** An OpenAI-style chat completion request. `model` is a Yaatal public id from `models()`. */
+/** An OpenAI-style chat completion request. `model` is a Kairmel public id from `models()`. */
 export interface ChatCompletionRequest {
   model: string;
   messages: ChatMessage[];
@@ -103,30 +105,42 @@ export interface Balance {
   recent: LedgerEntry[];
 }
 
-type InferenceEnv = NonNullable<YaatalInferenceOptions["env"]>;
+/** Thrown for a failed Kairmel API call. `status` and `body` carry the response through. */
+export class KairmelApiError extends Error {
+  readonly status: number;
+  readonly body: unknown;
+
+  constructor(status: number, body: unknown) {
+    super(`Kairmel API request failed with status ${status}`);
+    this.name = "KairmelApiError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
+type InferenceEnv = NonNullable<KairmelClientOptions["env"]>;
 
 function runtimeEnv(): InferenceEnv {
   const runtime = globalThis as typeof globalThis & { process?: { env?: InferenceEnv } };
   return runtime.process?.env ?? {};
 }
 
-export class YaatalInferenceClient {
+export class KairmelClient {
   private readonly baseUrl: string;
   private readonly apiKey: string | undefined;
   private readonly fetchImpl: FetchLike;
 
-  constructor(options: YaatalInferenceOptions = {}) {
+  constructor(options: KairmelClientOptions = {}) {
     const env = options.env ?? runtimeEnv();
-    const baseUrl = options.baseUrl ?? env.YAATAL_API_URL;
-    if (!baseUrl) throw new Error("Set the Yaatal API address: baseUrl or YAATAL_API_URL.");
+    const baseUrl = options.baseUrl ?? env.KAIRMEL_API_URL ?? DEFAULT_BASE_URL;
     this.baseUrl = baseUrl.replace(/\/+$/, "");
-    this.apiKey = options.apiKey ?? env.YAATAL_API_KEY;
+    this.apiKey = options.apiKey ?? env.KAIRMEL_API_KEY;
     this.fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
   }
 
   /** Models and their XOF prices. Public: no key needed. */
-  async models(): Promise<YaatalModel[]> {
-    const list = await this.send<{ data: YaatalModel[] }>("/v1/models", { auth: false });
+  async models(): Promise<KairmelModel[]> {
+    const list = await this.send<{ data: KairmelModel[] }>("/v1/models", { auth: false });
     return list.data;
   }
 
@@ -180,7 +194,7 @@ export class YaatalInferenceClient {
     const headers = new Headers();
     if (init.body !== undefined) headers.set("Content-Type", "application/json");
     if (init.auth !== false) {
-      if (!this.apiKey) throw new Error("This call needs a Yaatal API key: apiKey or YAATAL_API_KEY.");
+      if (!this.apiKey) throw new Error("This call needs a Kairmel API key: apiKey or KAIRMEL_API_KEY.");
       headers.set("Authorization", `Bearer ${this.apiKey}`);
     }
     const requestInit: RequestInit = { method: init.method ?? "GET", headers };
@@ -190,12 +204,12 @@ export class YaatalInferenceClient {
       const text = await response.text();
       let body: unknown = text;
       try { body = JSON.parse(text); } catch { /* plain-text error */ }
-      throw new YaatalApiError(response.status, body);
+      throw new KairmelApiError(response.status, body);
     }
     return response;
   }
 }
 
-export function createYaatalInference(options: YaatalInferenceOptions = {}): YaatalInferenceClient {
-  return new YaatalInferenceClient(options);
+export function createKairmelClient(options: KairmelClientOptions = {}): KairmelClient {
+  return new KairmelClient(options);
 }

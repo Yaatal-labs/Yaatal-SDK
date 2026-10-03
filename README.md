@@ -47,7 +47,7 @@ The package exposes:
 | `client.ai` | Engine's AI gateway: Engine picks the tier and model |
 | `client.voice` | audio transcription and live voice session URLs |
 | `client.livekit` | tokens for live audio/video rooms |
-| `client.inference` | the Yaatal API, OpenAI-compatible and billed in XOF (FCFA), when configured |
+| `client.inference` | the Kairmel API, OpenAI-compatible and billed in XOF (FCFA), when configured |
 
 Apps can still bring their own AI service; see
 [BYO AI Integration](docs/BYO-AI-INTEGRATION.md).
@@ -66,16 +66,16 @@ while (!(await client.auth.whatsappStatus(attempt.nonce)).code_sent) {
 await client.auth.verifyWhatsApp({ nonce: attempt.nonce, code: typedCode }); // token kept on the client
 ```
 
-### Yaatal API (AI billed in FCFA)
+### Kairmel API (AI billed in FCFA)
 
-One OpenAI-compatible endpoint for every model Yaatal sells, billed per token from a prepaid
-balance in XOF. It has its own address and its own `yk_...` keys, separate from Engine sessions.
-Keep the key server-side.
+One OpenAI-compatible endpoint for every model Kairmel sells, billed per token from a prepaid
+balance in XOF. It has its own address (`https://api.kairmel.com`, the client's default) and its own
+`yk_...` keys, separate from Engine sessions. Keep the key server-side.
 
 ```ts
-import { createYaatalInference } from "@yaatal/client";
+import { createKairmelClient } from "@yaatal/client";
 
-const api = createYaatalInference({ baseUrl: process.env.YAATAL_API_URL, apiKey: process.env.YAATAL_API_KEY });
+const api = createKairmelClient({ apiKey: process.env.KAIRMEL_API_KEY }); // baseUrl or KAIRMEL_API_URL to point elsewhere
 
 const models = await api.models(); // public: ids and XOF prices per million tokens
 const reply = await api.chat({ model: models[0].id, messages: [{ role: "user", content: "Salaam" }] });
@@ -87,7 +87,7 @@ for await (const chunk of api.chatStream({ model: models[0].id, messages })) {
 const { balance_xof } = await api.balance();
 ```
 
-Any OpenAI SDK also works: set its base URL to `<YAATAL_API_URL>/v1` and use a Yaatal key.
+Any OpenAI SDK also works: set its base URL to `https://api.kairmel.com/v1` and use a Kairmel key.
 
 Separately, `createStaticMerchantQr` / `createDynamicMerchantQr` /
 `validatePiSpiQrPayload` (`src/pispi.ts`) are plain, offline functions — not
@@ -392,10 +392,10 @@ Le package expose:
 | `client.ai` | passerelle IA d'Engine : Engine choisit le tier et le modèle |
 | `client.voice` | transcription audio et URL de session vocale en direct |
 | `client.livekit` | tokens pour les salles audio/vidéo en direct |
-| `client.inference` | l'API Yaatal, compatible OpenAI et facturée en XOF (FCFA), si configurée |
+| `client.inference` | l'API Kairmel, compatible OpenAI et facturée en XOF (FCFA), si configurée |
 
 Chaque app peut toujours brancher son propre service IA ; voir
-[Intégration IA externe](docs/BYO-AI-INTEGRATION.md). La connexion WhatsApp et l'API Yaatal
+[Intégration IA externe](docs/BYO-AI-INTEGRATION.md). La connexion WhatsApp et l'API Kairmel
 sont décrites en exemple dans la partie anglaise ci-dessus.
 
 ### Installation
