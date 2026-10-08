@@ -35,6 +35,10 @@ export class YaatalClient {
   readonly ai: AiClient;
   readonly analytics: AnalyticsClient;
   readonly auth: AuthClient;
+  /**
+   * @deprecated The BOBO bridge retires with the Sheet. Use `client.commerce` and `client.sheet`
+   * (Commerce Sheet) for new work.
+   */
   readonly bobo: BoboClient;
   readonly catalog: CatalogClient;
   readonly commerce: CommerceClient;
@@ -45,6 +49,10 @@ export class YaatalClient {
   readonly liveSessions: LiveSessionsClient;
   readonly notifications: NotificationsClient;
   readonly products: ProductsClient;
+  /**
+   * @deprecated Retires with the Sheet. Use `client.commerce` (`conversions`, `deliveries`) for
+   * seller-side orders.
+   */
   readonly orders: OrdersClient;
   readonly search: SearchClient;
   readonly sheet: SheetClient;

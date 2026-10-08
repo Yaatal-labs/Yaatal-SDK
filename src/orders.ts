@@ -62,6 +62,7 @@ export interface UpdateOrderStatusRequest {
   status: OrderStatus;
 }
 
+/** @deprecated Retires with the Sheet. Use `client.commerce` for seller-side orders. */
 export class OrdersClient {
   constructor(private readonly http: EngineHttpClient) {}
 

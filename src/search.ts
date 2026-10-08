@@ -83,6 +83,9 @@ export class SearchClient {
     });
   }
 
+  /**
+   * @deprecated Retires with the Sheet. Use `client.commerce.conversions()` and `deliveries()`.
+   */
   orders(params: SearchOrdersParams = {}): Promise<SearchOrdersResponse> {
     return this.http.request<SearchOrdersResponse>("/api/search/orders", {
       query: normalizeSearchParams(params),
