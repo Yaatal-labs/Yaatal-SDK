@@ -3,6 +3,8 @@ export type FetchLike = typeof fetch;
 export interface RequestOptions {
   method?: string;
   token?: string;
+  /** `false` sends no Authorization header at all, even if the client holds a token (buyer-facing routes). */
+  auth?: boolean;
   query?: Record<string, boolean | number | string | null | undefined>;
   body?: unknown;
   /** Sent as-is instead of a JSON body (audio uploads). Set its Content-Type in `headers`. */
@@ -59,7 +61,7 @@ export class EngineHttpClient {
       headers.set("Content-Type", "application/json");
     }
 
-    const token = options.token ?? this.token;
+    const token = options.auth === false ? undefined : (options.token ?? this.token);
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }

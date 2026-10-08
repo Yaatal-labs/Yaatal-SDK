@@ -3,6 +3,7 @@ import { AuthClient } from "./auth.js";
 import { AnalyticsClient } from "./analytics.js";
 import { BoboClient } from "./bobo.js";
 import { CatalogClient } from "./catalog.js";
+import { CommerceClient, SheetClient } from "./commerce.js";
 import { DeliveryClient } from "./delivery.js";
 import { LiveSessionsClient } from "./live-sessions.js";
 import { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
@@ -36,6 +37,7 @@ export class YaatalClient {
   readonly auth: AuthClient;
   readonly bobo: BoboClient;
   readonly catalog: CatalogClient;
+  readonly commerce: CommerceClient;
   readonly delivery: DeliveryClient;
   readonly harness: HarnessClient;
   readonly inference: KairmelClient | undefined;
@@ -45,6 +47,7 @@ export class YaatalClient {
   readonly products: ProductsClient;
   readonly orders: OrdersClient;
   readonly search: SearchClient;
+  readonly sheet: SheetClient;
   readonly social: SocialClient;
   readonly voice: VoiceClient;
 
@@ -67,6 +70,7 @@ export class YaatalClient {
     this.auth = new AuthClient(this.http);
     this.bobo = new BoboClient(this.http);
     this.catalog = new CatalogClient(this.http);
+    this.commerce = new CommerceClient(this.http);
     this.delivery = new DeliveryClient(this.http);
     this.harness = new HarnessClient(this.http);
     this.inference = options.inference
@@ -81,6 +85,7 @@ export class YaatalClient {
     this.products = new ProductsClient(this.http);
     this.orders = new OrdersClient(this.http);
     this.search = new SearchClient(this.http);
+    this.sheet = new SheetClient(this.http);
     this.social = new SocialClient(this.http);
     this.voice = new VoiceClient(this.http);
   }

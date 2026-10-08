@@ -34,7 +34,7 @@
     "test:cli": "node ./scripts/cli-smoke.mjs",
     "test:pispi": "node ./scripts/pispi-smoke.mjs",
     "test:pack-install": "node ./scripts/pack-install-smoke.mjs",
-    "test:unit": "node --test test/engine-catchup.test.mjs",
+    "test:unit": "node --test test/engine-catchup.test.mjs test/commerce.test.mjs",
     "example:node-smoke": "node ./examples/node-smoke.mjs",
     "check": "npm run test:contracts && npm run build && npm run test:cli && npm run test:pispi && npm run test:unit && npm run test:pack-install",
     "test": "npm run test:contracts && npm run build && npm run test:cli && npm run test:pispi && npm run test:unit",
