@@ -136,6 +136,8 @@ export interface CommerceMoney {
   disputed: number;
   /** Confirmed by buyers, not yet paid out: the next payout. */
   balance: number;
+  /** Released sandbox sales: demo money, never paid out. */
+  sandbox: number;
   paid_out: number;
   refunded: number;
   /** "none", "pending", "verified" or "rejected". Payouts need "verified". */

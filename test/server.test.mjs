@@ -136,3 +136,23 @@ test("package.json exposes ./server and keeps it out of the main export", () => 
   assert.deepEqual(pkg.exports["./server"], { types: "./dist/server.d.ts", import: "./dist/server.js" });
   assert.equal(pkg.exports["."].import, "./dist/index.js");
 });
+
+test("partnerAuth.asUser: trades the pid for a session, then calls the Engine as that user", async () => {
+  const { fetch, calls } = fakeFetch(url => url.endsWith("/session")
+    ? { token: "jwt-for-seller", expires_in_seconds: 900 }
+    : { in_escrow: 0, disputed: 0, balance: 0, sandbox: 0, paid_out: 0, refunded: 0, kyc_status: "none", recent: [] });
+  const auth = createPartnerAuth({ baseUrl: ENGINE, secret: "kairmel-own-secret", fetch });
+
+  const seller = await auth.asUser("0d9c2f8e-1111-4222-8333-444455556666");
+  await seller.commerce.money();
+
+  assert.deepEqual(calls.map(c => `${c.method} ${c.url}`), [
+    `POST ${ENGINE}/api/auth/whatsapp/partner/session`,
+    `GET ${ENGINE}/api/commerce/money`,
+  ]);
+  assert.deepEqual(calls[0].body, { pid: "0d9c2f8e-1111-4222-8333-444455556666" });
+  assert.equal(calls[0].headers.get("x-engine-auth-secret"), "kairmel-own-secret");
+  // The seller call carries the session, never the partner secret.
+  assert.equal(calls[1].headers.get("authorization"), "Bearer jwt-for-seller");
+  assert.equal(calls[1].headers.get("x-engine-auth-secret"), null);
+});

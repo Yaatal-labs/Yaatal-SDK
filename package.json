@@ -1,6 +1,6 @@
 {
   "name": "@yaatal/client",
-  "version": "0.2.0-beta.0",
+  "version": "0.2.0-beta.1",
   "description": "Typed JavaScript/TypeScript client for Yaatal Engine",
   "type": "module",
   "license": "MIT OR Apache-2.0",

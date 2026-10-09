@@ -7,6 +7,7 @@
 import { getEngineApiUrl, type EngineRuntimeEnv } from "./env.js";
 import { EngineHttpClient, type FetchLike } from "./http.js";
 import { KairmelApiError } from "./inference.js";
+import { createYaatalClient, type YaatalClient } from "./client.js";
 
 // ---------------------------------------------------------------------------------------------
 // WhatsApp sign-in for partner platforms (Engine: controllers/whatsapp_partner_auth.rs)
@@ -44,6 +45,13 @@ export interface PartnerAuthVerified {
   pid: string;
 }
 
+/** whatsapp_partner_auth.rs SessionResponse: a short Engine session for one user. */
+export interface PartnerSession {
+  /** An Engine JWT for that user. Use it for one action; ask again rather than store it. */
+  token: string;
+  expires_in_seconds: number;
+}
+
 export interface PartnerAuthClient {
   /** Open a sign-in attempt. */
   start(): Promise<PartnerAuthStart>;
@@ -51,6 +59,14 @@ export interface PartnerAuthClient {
   status(id: string): Promise<PartnerAuthStatus>;
   /** Exchange the code the user read off their phone for their Engine `pid`. A wrong code is a 401. */
   verify(id: string, code: string): Promise<PartnerAuthVerified>;
+  /**
+   * Trade a user's `pid` for a short Engine session (15 minutes), to act for them: sell, read
+   * their sales. Needs this partner's own secret (ENGINE_PARTNER_SECRETS on the Engine); the
+   * shared legacy secret is refused. The user becomes a merchant if they weren't one.
+   */
+  session(pid: string): Promise<PartnerSession>;
+  /** A full client signed in as that user, from `session(pid)`. */
+  asUser(pid: string): Promise<YaatalClient>;
 }
 
 const PARTNER_PREFIX = "/api/auth/whatsapp/partner";
@@ -66,11 +82,20 @@ export function createPartnerAuth(options: PartnerAuthOptions = {}): PartnerAuth
     fetch: options.fetch,
     headers: { "X-Engine-Auth-Secret": secret },
   });
+  const session = (pid: string) =>
+    http.request<PartnerSession>(`${PARTNER_PREFIX}/session`, { method: "POST", body: { pid } });
   return {
     start: () => http.request<PartnerAuthStart>(`${PARTNER_PREFIX}/start`, { method: "POST" }),
     status: id => http.request<PartnerAuthStatus>(`${PARTNER_PREFIX}/status`, { query: { id } }),
     verify: (id, code) =>
       http.request<PartnerAuthVerified>(`${PARTNER_PREFIX}/verify`, { method: "POST", body: { id, code } }),
+    session,
+    asUser: async pid =>
+      createYaatalClient({
+        baseUrl: options.baseUrl ?? getEngineApiUrl(env),
+        ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
+        token: (await session(pid)).token,
+      }),
   };
 }
 
@@ -79,6 +104,8 @@ export const partnerAuth: PartnerAuthClient = {
   start: () => createPartnerAuth().start(),
   status: id => createPartnerAuth().status(id),
   verify: (id, code) => createPartnerAuth().verify(id, code),
+  session: pid => createPartnerAuth().session(pid),
+  asUser: pid => createPartnerAuth().asUser(pid),
 };
 
 // ---------------------------------------------------------------------------------------------
