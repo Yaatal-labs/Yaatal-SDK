@@ -158,8 +158,11 @@ if (!(client instanceof YaatalClient)) {
   throw new Error("createYaatalClient did not return a YaatalClient");
 }
 
-if ("ai" in client) {
-  throw new Error("V1 SDK must not expose client.ai");
+// 0.2: the installed package exposes the namespaces that caught up with Engine main.
+for (const namespace of ["ai", "voice", "livekit"]) {
+  if (!(namespace in client)) {
+    throw new Error("Installed SDK is missing client." + namespace);
+  }
 }
 
 const response = await client.analytics.track({

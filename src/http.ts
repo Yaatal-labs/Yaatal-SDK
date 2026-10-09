@@ -5,6 +5,8 @@ export interface RequestOptions {
   token?: string;
   query?: Record<string, boolean | number | string | null | undefined>;
   body?: unknown;
+  /** Sent as-is instead of a JSON body (audio uploads). Set its Content-Type in `headers`. */
+  rawBody?: BodyInit;
   headers?: HeadersInit;
 }
 
@@ -67,7 +69,9 @@ export class EngineHttpClient {
       headers,
     };
 
-    if (options.body !== undefined) {
+    if (options.rawBody !== undefined) {
+      requestInit.body = options.rawBody;
+    } else if (options.body !== undefined) {
       requestInit.body = JSON.stringify(options.body);
     }
 
@@ -82,6 +86,19 @@ export class EngineHttpClient {
     }
 
     return (await readBody(response)) as T;
+  }
+
+  /** The absolute URL for an Engine path, for links and WebSocket upgrades. */
+  url(
+    path: string,
+    query?: Record<string, boolean | number | string | null | undefined>,
+  ): string {
+    return this.buildUrl(path, query);
+  }
+
+  /** The bearer token set on this client, if any. */
+  currentToken(): string | undefined {
+    return this.token;
   }
 
   private buildUrl(

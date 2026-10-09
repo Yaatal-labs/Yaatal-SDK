@@ -46,7 +46,7 @@ instead when validating a staged SDK or app release.
 | `WAVE_API_BASE`, `WAVE_API_KEY`, `WAVE_WEBHOOK_SECRET`, `WAVE_MERCHANT_ID` | No | Staging, production | Needed only for real Wave payment rail tests. The SDK V1 generic smoke uses `payment_method: "cash"` and must not be blocked by missing Wave config. |
 | `POSTHOG_API_KEY` | No | Local, staging, production | If missing, analytics falls back to logging. `/api/analytics/track` and `/api/analytics/identify` should still return success. |
 | `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL` | No | Staging, production | Only needed for `/api/livekit/*`. Missing config makes LiveKit endpoints return 503, but SDK V1 commerce/auth/search testing can continue. |
-| `SILICONFLOW_API_KEY`, `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, `HUGGINGFACE_API_KEY` | No | Local, staging, production | AI router provider keys are optional for SDK V1 commerce smoke. Set them only when validating AI cascade behavior. |
+| `ANTHROPIC_API_KEY`, `HUGGINGFACE_API_KEY`, and other AI router provider keys | No | Local, staging, production | AI router provider keys are optional for SDK V1 commerce smoke. Set them only when validating AI cascade behavior. |
 | `OLLAMA_BASE_URL` | No | Local or BYO-AI labs | `/api/ai/chat` proxies Ollama-compatible streaming. Do not require Ollama for SDK V1 rollout testing. |
 | `HF_API_TOKEN` | No | Voice/cloud transcription only | Separate from `HUGGINGFACE_API_KEY`; used by voice transcription paths, not SDK V1 commerce smoke. |
 | `VOICE_SERVICE_URL`, `SEARCH_SERVICE_URL`, `SEARCH_SERVICE_TIMEOUT_SECONDS` | No | Bo-Plex/search service testing | Optional sidecars. The SDK V1 `/api/search/products` smoke below uses the Engine SQL search route, not the external search service. |
@@ -286,7 +286,7 @@ ou app en staging, utiliser plutot l'URL Railway de staging.
 | `WAVE_API_BASE`, `WAVE_API_KEY`, `WAVE_WEBHOOK_SECRET`, `WAVE_MERCHANT_ID` | Non | Staging, production | Necessaire seulement pour tester le vrai rail Wave. Le smoke generique SDK V1 utilise `payment_method: "cash"` et ne doit pas bloquer si Wave manque. |
 | `POSTHOG_API_KEY` | Non | Local, staging, production | Sans cle, analytics tombe sur les logs. `/api/analytics/track` et `/api/analytics/identify` doivent quand meme reussir. |
 | `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL` | Non | Staging, production | Necessaire seulement pour `/api/livekit/*`. Sans config, ces endpoints retournent 503, mais les tests auth/commerce/search SDK V1 continuent. |
-| `SILICONFLOW_API_KEY`, `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, `HUGGINGFACE_API_KEY` | Non | Local, staging, production | Cles optionnelles pour le routeur IA. Les definir seulement pour valider la cascade IA. |
+| `ANTHROPIC_API_KEY`, `HUGGINGFACE_API_KEY`, et autres cles du routeur IA | Non | Local, staging, production | Cles optionnelles pour le routeur IA. Les definir seulement pour valider la cascade IA. |
 | `OLLAMA_BASE_URL` | Non | Local ou lab BYO-AI | `/api/ai/chat` proxy un stream compatible Ollama. Ne pas exiger Ollama pour le rollout SDK V1. |
 | `HF_API_TOKEN` | Non | Transcription voix/cloud seulement | Different de `HUGGINGFACE_API_KEY`; utilise par les chemins voix, pas par le smoke commerce SDK V1. |
 | `VOICE_SERVICE_URL`, `SEARCH_SERVICE_URL`, `SEARCH_SERVICE_TIMEOUT_SECONDS` | Non | Tests Bo-Plex/search service | Sidecars optionnels. Le smoke `/api/search/products` ci-dessous utilise la recherche SQL Engine, pas le service search externe. |
