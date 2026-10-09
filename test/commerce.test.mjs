@@ -139,12 +139,13 @@ test("commerce: money, KYC and a token pack bought as the signed-in user", async
 });
 
 test("sheet: the buyer reads back, confirms or disputes with their proof, never a bearer token", async () => {
-  const { fetch, calls } = fakeFetch(() => ({ ...receipt, payment_status: "released" }));
+  const { fetch, calls } = fakeFetch(url => url.includes("/confirm") ? { payment_status: "released" }
+    : url.includes("/dispute") ? { payment_status: "disputed" } : receipt);
   const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
 
   await client.sheet.receipt("tok", "r1", { tx: "YT0123456789ABCDEF0123" });
-  await client.sheet.confirm("tok", "r1", { key: "checkout-0001" });
-  await client.sheet.dispute("tok", "r1", { tx: "YT0123456789ABCDEF0123" }, "Pas reçu");
+  assert.deepEqual(await client.sheet.confirm("tok", "r1", { key: "checkout-0001" }), { payment_status: "released" });
+  assert.equal((await client.sheet.dispute("tok", "r1", { tx: "YT0123456789ABCDEF0123" }, "Pas reçu")).payment_status, "disputed");
 
   assert.deepEqual(calls.map(c => `${c.method} ${c.url}`), [
     `GET ${ENGINE}/b/tok/receipts/r1?tx=YT0123456789ABCDEF0123`,

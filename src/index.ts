@@ -73,6 +73,7 @@ export type {
   CommerceReceipt,
   CommerceShareLinks,
   CommerceSheet,
+  EscrowMoveResult,
   ListCommerceDeliveriesParams,
   ReceiptProof,
   PutOnAirRequest,

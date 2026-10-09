@@ -109,6 +109,12 @@ export interface CommercePayment {
   launch_url?: string;
 }
 
+/** controllers/commerce.rs buyer_escrow_move: the receipt's new payment status after a buyer move. */
+export interface EscrowMoveResult {
+  /** "released" after confirm, "disputed" after dispute. */
+  payment_status: string;
+}
+
 /** How a buyer proves a receipt is theirs: the payment reference or the checkout's idempotency key. */
 export type ReceiptProof = { tx: string } | { key: string };
 
@@ -332,8 +338,8 @@ export class SheetClient {
   }
 
   /** The buyer has the goods: the money is the seller's. 409 `escrow_not_held` otherwise. */
-  confirm(token: string, receiptId: string, proof: ReceiptProof): Promise<CommerceReceipt> {
-    return this.http.request<CommerceReceipt>(
+  confirm(token: string, receiptId: string, proof: ReceiptProof): Promise<EscrowMoveResult> {
+    return this.http.request<EscrowMoveResult>(
       `/b/${encodeURIComponent(token)}/receipts/${encodeURIComponent(receiptId)}/confirm`,
       { method: "POST", auth: false, query: { ...proof }, body: {} },
     );
@@ -345,8 +351,8 @@ export class SheetClient {
     receiptId: string,
     proof: ReceiptProof,
     reason: string,
-  ): Promise<CommerceReceipt> {
-    return this.http.request<CommerceReceipt>(
+  ): Promise<EscrowMoveResult> {
+    return this.http.request<EscrowMoveResult>(
       `/b/${encodeURIComponent(token)}/receipts/${encodeURIComponent(receiptId)}/dispute`,
       { method: "POST", auth: false, query: { ...proof }, body: { reason } },
     );
