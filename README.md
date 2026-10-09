@@ -78,6 +78,8 @@ account and checks out. All money is whole FCFA (XOF) integers (`*_fcfa`).
 const link = await client.commerce.putOnAir({ product_id, delivery_fee_fcfa: 1500 });
 await client.commerce.conversions({ live_session_id });
 await client.commerce.updateDelivery(receiptId, { status: "delivered" });
+const money = await client.commerce.money();  // in_escrow, balance, paid_out, refunded, kyc_status
+await client.commerce.submitKyc("CNI 1 234 5678 90123"); // a reference, never the document; gates payouts
 
 // Buyer (anonymous: `client.sheet` never sends a bearer token)
 const sheet = await client.sheet.get(token);
@@ -86,6 +88,14 @@ const receipt = await client.sheet.checkout(token, {
   idempotency_key: crypto.randomUUID(),
   contact: { name: "Awa", phone: "221770000000", area: "Medina" },
 });
+// Paid online: send the buyer to receipt.payment.launch_url (Wave's page, or the sandbox's).
+// Back on your page, read it back with the proof the buyer holds (payment ref or idempotency key):
+const back = await client.sheet.receipt(token, receipt.receipt_id, { tx: receipt.payment!.tx_id });
+await client.sheet.confirm(token, receipt.receipt_id, { tx: receipt.payment!.tx_id }); // releases escrow
+// or: await client.sheet.dispute(token, receiptId, proof, "Pas reçu");
+
+// Kairmel API credit, bought as the signed-in user, paid on the Sheet:
+await client.commerce.buyTokenPack(packToken, { provider: "wave", idempotency_key: crypto.randomUUID() });
 ```
 
 ### Server-only helpers (`@yaatal/client/server`)
@@ -100,6 +110,12 @@ import { partnerAuth, kairmelAdmin } from "@yaatal/client/server";
 const { id, whatsapp_url } = await partnerAuth.start();
 await partnerAuth.status(id);                 // { status: "pending" | "code_sent" | "expired" }
 const { pid } = await partnerAuth.verify(id, code);
+
+// Act for that user (sell, read sales) with a 15-minute Engine session: needs this partner's
+// own secret, i.e. its line in the Engine's ENGINE_PARTNER_SECRETS (the shared legacy secret
+// is refused). The user becomes a merchant if they weren't one.
+const seller = await partnerAuth.asUser(pid);
+await seller.commerce.putOnAir({ product_id });
 
 // Kairmel account keyed by that Engine pid: needs KAIRMEL_ADMIN_TOKEN (and KAIRMEL_API_URL).
 const account = await kairmelAdmin.upsertAccountByPid(pid, { name: "Awa Diop" });
