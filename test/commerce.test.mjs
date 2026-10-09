@@ -113,3 +113,44 @@ test("sheet: Engine error codes surface as YaatalApiError", async () => {
     e => e instanceof YaatalApiError && e.status === 409 && e.body.error === "intent_closed",
   );
 });
+
+test("commerce: money, KYC and a token pack bought as the signed-in user", async () => {
+  const money = { in_escrow: 12500, disputed: 0, balance: 12500, paid_out: 0, refunded: 0, kyc_status: "none", recent: [] };
+  const { fetch, calls } = fakeFetch(url => url.endsWith("/money") ? money
+    : url.endsWith("/kyc") ? { status: "pending", document_ref: "CNI 1", submitted_at: "t", reviewed_at: null }
+    : { ...receipt, payment_provider: "wave", payment_status: "awaiting_payment",
+        payment: { rail: "wave", tx_id: "YT0123456789ABCDEF0123", status: "pending", launch_url: "https://pay.wave.com/c/cos-1" } });
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+
+  assert.equal((await client.commerce.money()).balance, 12500);
+  await client.commerce.kyc();
+  assert.equal((await client.commerce.submitKyc("CNI 1")).status, "pending");
+  const bought = await client.commerce.buyTokenPack("tok/1", { provider: "wave", idempotency_key: "pack-0001" });
+  assert.equal(bought.payment.launch_url, "https://pay.wave.com/c/cos-1");
+
+  assert.deepEqual(calls.map(c => `${c.method} ${c.url}`), [
+    `GET ${ENGINE}/api/commerce/money`,
+    `GET ${ENGINE}/api/commerce/kyc`,
+    `POST ${ENGINE}/api/commerce/kyc`,
+    `POST ${ENGINE}/api/commerce/token-packs/tok%2F1/checkout`,
+  ]);
+  assert.deepEqual(calls[2].body, { document_ref: "CNI 1" });
+  for (const c of calls) assert.equal(c.headers.get("authorization"), "Bearer jwt-1");
+});
+
+test("sheet: the buyer reads back, confirms or disputes with their proof, never a bearer token", async () => {
+  const { fetch, calls } = fakeFetch(() => ({ ...receipt, payment_status: "released" }));
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+
+  await client.sheet.receipt("tok", "r1", { tx: "YT0123456789ABCDEF0123" });
+  await client.sheet.confirm("tok", "r1", { key: "checkout-0001" });
+  await client.sheet.dispute("tok", "r1", { tx: "YT0123456789ABCDEF0123" }, "Pas reçu");
+
+  assert.deepEqual(calls.map(c => `${c.method} ${c.url}`), [
+    `GET ${ENGINE}/b/tok/receipts/r1?tx=YT0123456789ABCDEF0123`,
+    `POST ${ENGINE}/b/tok/receipts/r1/confirm?key=checkout-0001`,
+    `POST ${ENGINE}/b/tok/receipts/r1/dispute?tx=YT0123456789ABCDEF0123`,
+  ]);
+  assert.deepEqual(calls[2].body, { reason: "Pas reçu" });
+  for (const c of calls) assert.equal(c.headers.get("authorization"), null);
+});

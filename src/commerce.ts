@@ -3,7 +3,7 @@ import type { EngineHttpClient } from "./http.js";
 // The Commerce Sheet: a seller puts a product on air and gets one link per channel; a buyer opens
 // the link without signing in and checks out. Every amount is whole FCFA (XOF), an integer.
 //
-// Shapes mirror the Engine (Yaatal-labs/Yaatal-Engine, main at d3609007):
+// Shapes mirror the Engine (Yaatal-labs/Yaatal-Engine, branch yaatal/uni-payments at fb8d70de + T6):
 //   requests  crates/yaatal-api/src/controllers/commerce.rs  PutOnAirParams (L87), DeliveryQuery (L116),
 //             DeliveryUpdate (L122), ContactParams (L129), CheckoutParams (L141)
 //   responses crates/yaatal-api/src/views/commerce.rs        ProductCard (L10) ... DeliveryResponse (L123)
@@ -93,6 +93,56 @@ export interface CommerceReceipt {
   created_at: string;
   /** True when this answers a replayed checkout (nothing was charged again). */
   deduplicated: boolean;
+  /** The online payment, on the buyer's own receipt; absent for pay on delivery. */
+  payment?: CommercePayment;
+}
+
+/** views/commerce.rs PaymentView: an online payment and where the buyer approves it. */
+export interface CommercePayment {
+  /** "sandbox", "wave" or "pispi". */
+  rail: string;
+  /** Our payment reference ("YT" + 20 hex); proves the buyer on later receipt calls. */
+  tx_id: string;
+  /** "pending", "succeeded", "failed" or "reversed". */
+  status: string;
+  /** Send the buyer here to pay, while `status` is "pending" (Wave's own page for Wave). */
+  launch_url?: string;
+}
+
+/** How a buyer proves a receipt is theirs: the payment reference or the checkout's idempotency key. */
+export type ReceiptProof = { tx: string } | { key: string };
+
+/** services/merchant_money.rs LedgerLine. */
+export interface CommerceLedgerLine {
+  /** "payment_in", "refund_out" or "payout_out". */
+  kind: string;
+  amount_fcfa: number;
+  receipt_id: string | null;
+  reference: string | null;
+  created_at: string;
+}
+
+/** services/merchant_money.rs MoneyView: the seller's money, whole FCFA. */
+export interface CommerceMoney {
+  /** Paid by buyers, waiting on their confirmation. */
+  in_escrow: number;
+  /** Contested, frozen until an operator decides. */
+  disputed: number;
+  /** Confirmed by buyers, not yet paid out: the next payout. */
+  balance: number;
+  paid_out: number;
+  refunded: number;
+  /** "none", "pending", "verified" or "rejected". Payouts need "verified". */
+  kyc_status: string;
+  recent: CommerceLedgerLine[];
+}
+
+/** controllers/commerce_money.rs kyc_json. */
+export interface CommerceKyc {
+  status: string;
+  document_ref?: string | null;
+  submitted_at?: string;
+  reviewed_at?: string | null;
 }
 
 /** views/commerce.rs:103 ConversionsResponse. */
@@ -131,6 +181,8 @@ export interface PutOnAirRequest {
   delivery_note?: string;
   /** The seller's WhatsApp number, handed to a buyer on their receipt. */
   whatsapp?: string;
+  /** "product" (default) or "token_pack" (Kairmel API credit; Yaatal's own merchant only). */
+  kind?: "product" | "token_pack";
 }
 
 /** controllers/commerce.rs:116 DeliveryQuery. */
@@ -207,6 +259,35 @@ export class CommerceClient {
     });
   }
 
+  /** Where the seller's money stands: escrow, balance, paid out, refunds, recent ledger. */
+  money(): Promise<CommerceMoney> {
+    return this.http.request<CommerceMoney>("/api/commerce/money");
+  }
+
+  /** The seller's identity check, which payouts need. */
+  kyc(): Promise<CommerceKyc> {
+    return this.http.request<CommerceKyc>("/api/commerce/kyc");
+  }
+
+  /** Submit a reference to an identity document (e.g. its number), never the document itself. */
+  submitKyc(documentRef: string): Promise<CommerceKyc> {
+    return this.http.request<CommerceKyc>("/api/commerce/kyc", {
+      method: "POST",
+      body: { document_ref: documentRef },
+    });
+  }
+
+  /**
+   * Buy a token pack (Kairmel API credit) as the signed-in user: the credit lands on their own
+   * Kairmel account. Answers like `sheet.checkout`; send the buyer to `payment.launch_url`.
+   */
+  buyTokenPack(token: string, request: SheetCheckoutRequest): Promise<CommerceReceipt> {
+    return this.http.request<CommerceReceipt>(
+      `/api/commerce/token-packs/${encodeURIComponent(token)}/checkout`,
+      { method: "POST", body: request },
+    );
+  }
+
   /** Mark a pay-on-delivery order delivered or cancelled. `receiptId` is the receipt's `receipt_id`. */
   updateDelivery(
     receiptId: string,
@@ -230,12 +311,44 @@ export class SheetClient {
     });
   }
 
-  /** Explicit, idempotent checkout. Replaying an `idempotency_key` returns the receipt with `deduplicated: true`. */
+  /**
+   * Explicit, idempotent checkout. Replaying an `idempotency_key` returns the receipt with
+   * `deduplicated: true`. For an online payment, send the buyer to `payment.launch_url`.
+   */
   checkout(token: string, request: SheetCheckoutRequest): Promise<CommerceReceipt> {
     return this.http.request<CommerceReceipt>(`/b/${encodeURIComponent(token)}/checkout`, {
       method: "POST",
       auth: false,
       body: request,
     });
+  }
+
+  /** The buyer's receipt, read back (e.g. on return from Wave, which also settles a late payment). */
+  receipt(token: string, receiptId: string, proof: ReceiptProof): Promise<CommerceReceipt> {
+    return this.http.request<CommerceReceipt>(
+      `/b/${encodeURIComponent(token)}/receipts/${encodeURIComponent(receiptId)}`,
+      { auth: false, query: { ...proof } },
+    );
+  }
+
+  /** The buyer has the goods: the money is the seller's. 409 `escrow_not_held` otherwise. */
+  confirm(token: string, receiptId: string, proof: ReceiptProof): Promise<CommerceReceipt> {
+    return this.http.request<CommerceReceipt>(
+      `/b/${encodeURIComponent(token)}/receipts/${encodeURIComponent(receiptId)}/confirm`,
+      { method: "POST", auth: false, query: { ...proof }, body: {} },
+    );
+  }
+
+  /** Contest a paid order while its money is held (1 to 280 characters); an operator decides. */
+  dispute(
+    token: string,
+    receiptId: string,
+    proof: ReceiptProof,
+    reason: string,
+  ): Promise<CommerceReceipt> {
+    return this.http.request<CommerceReceipt>(
+      `/b/${encodeURIComponent(token)}/receipts/${encodeURIComponent(receiptId)}/dispute`,
+      { method: "POST", auth: false, query: { ...proof }, body: { reason } },
+    );
   }
 }
