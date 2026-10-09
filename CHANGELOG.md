@@ -19,6 +19,21 @@ Adds the Engine `main` routes apps and AI agents need next (reviewed against Eng
 - `createKairmelClient` / `client.inference`: the Kairmel API, OpenAI-compatible, billed in XOF:
   `models`, `chat`, `chatStream` (SSE, usage included), `balance`.
 - Behavioural tests (`npm run test:unit`) against a fake fetch for every new call.
+- `client.commerce` (`putOnAir`, `listOnAir`, `takeOffAir`, `conversions`, `deliveries`,
+  `updateDelivery`) and `client.sheet` (`get`, `checkout`, never sends a bearer token): the
+  Commerce Sheet, with request and response types mirrored from the Engine's Rust structs. All
+  amounts are whole FCFA integers (`*_fcfa`).
+- `@yaatal/client/server`, a server-only subpath export: `partnerAuth` (`start`, `status`,
+  `verify`; header `X-Engine-Auth-Secret`) and `kairmelAdmin` (`upsertAccountByPid`, `createKey`).
+  The main entry never imports it; a test walks the main bundle's import graph to prove it.
+- `test/engine-routes.test.mjs`: diffs every Engine route the SDK calls against the routes in an
+  Engine checkout (`ENGINE_CONTROLLERS_DIR`; skipped when unset).
+- `RequestOptions.auth: false` sends a request with no Authorization header.
+
+### Deprecated
+
+- `client.bobo`, `client.orders` and `client.search.orders` retire with the Sheet. Use
+  `client.commerce` and `client.sheet`. They still work in this release.
 
 ### Fixed
 

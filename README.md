@@ -36,12 +36,14 @@ The package exposes:
 |---|---|
 | `client.auth` | login, registration, WhatsApp sign-in, bootstrap grants, session/user helpers |
 | `client.products` | product CRUD/listing backed by Engine |
-| `client.orders` | generic Engine order APIs |
+| `client.orders` | generic Engine order APIs (deprecated, retires with the Sheet) |
 | `client.delivery` | generic delivery lifecycle APIs |
-| `client.search` | SQL-backed product, merchant, and order search |
+| `client.search` | SQL-backed product, merchant, and order search (`search.orders` is deprecated) |
 | `client.notifications` | in-app notification records |
 | `client.analytics` | authenticated `track` and `identify` |
-| `client.bobo` | BOBO checkout, orders, escrow, and KYC bridge helpers |
+| `client.bobo` | BOBO checkout, orders, escrow, and KYC bridge helpers (deprecated, retires with the Sheet) |
+| `client.commerce` | Commerce Sheet, seller side: put a product on air, links, conversions, pay-on-delivery orders |
+| `client.sheet` | Commerce Sheet, buyer side (no sign-in): read a link's sheet and check out |
 | `client.harness` | Yaatal Harness L1 proposal review (list/approve/reject) |
 | `client.social` | inbound social-channel events (WhatsApp, Telegram, ...) |
 | `client.ai` | Engine's AI gateway: Engine picks the tier and model |
@@ -65,6 +67,46 @@ while (!(await client.auth.whatsappStatus(attempt.nonce)).code_sent) {
 }
 await client.auth.verifyWhatsApp({ nonce: attempt.nonce, code: typedCode }); // token kept on the client
 ```
+
+### Commerce Sheet
+
+A seller puts a product on air and gets one link per channel. A buyer opens the link with no
+account and checks out. All money is whole FCFA (XOF) integers (`*_fcfa`).
+
+```ts
+// Seller (signed in)
+const link = await client.commerce.putOnAir({ product_id, delivery_fee_fcfa: 1500 });
+await client.commerce.conversions({ live_session_id });
+await client.commerce.updateDelivery(receiptId, { status: "delivered" });
+
+// Buyer (anonymous: `client.sheet` never sends a bearer token)
+const sheet = await client.sheet.get(token);
+const receipt = await client.sheet.checkout(token, {
+  provider: "cash_on_delivery",
+  idempotency_key: crypto.randomUUID(),
+  contact: { name: "Awa", phone: "221770000000", area: "Medina" },
+});
+```
+
+### Server-only helpers (`@yaatal/client/server`)
+
+Holds secrets, so it is a separate entry that the main `@yaatal/client` never imports. Use it on a
+backend only.
+
+```ts
+import { partnerAuth, kairmelAdmin } from "@yaatal/client/server";
+
+// WhatsApp sign-in for a partner platform: needs ENGINE_AUTH_SECRET (and YAATAL_ENGINE_API_URL).
+const { id, whatsapp_url } = await partnerAuth.start();
+await partnerAuth.status(id);                 // { status: "pending" | "code_sent" | "expired" }
+const { pid } = await partnerAuth.verify(id, code);
+
+// Kairmel account keyed by that Engine pid: needs KAIRMEL_ADMIN_TOKEN (and KAIRMEL_API_URL).
+const account = await kairmelAdmin.upsertAccountByPid(pid, { name: "Awa Diop" });
+const { api_key } = await kairmelAdmin.createKey(account.id, "default");
+```
+
+`createPartnerAuth(options)` and `createKairmelAdmin(options)` take the same values explicitly.
 
 ### Kairmel API (AI billed in FCFA)
 
@@ -328,6 +370,7 @@ npm run test:contracts
 npm run build
 npm run test:cli
 npm run test:pispi
+npm run test:unit
 npm run test:pack-install
 npm run example:node-smoke
 npm publish --dry-run --tag beta --access public
@@ -339,7 +382,9 @@ HTTP engine and exercises the `yaatal` CLI end to end. `test:pispi` exercises
 offline PI-SPI QR generation (`src/pispi.ts`) with a dummy UUID-v4 alias.
 `test:pack-install` packs the package, installs it into a temporary consumer
 app, and imports `@yaatal/client` through
-the package export.
+the package export. `test:unit` runs the behavioural tests against a fake fetch; set
+`ENGINE_CONTROLLERS_DIR=<engine>/crates/yaatal-api/src/controllers` to also check that every route
+the SDK calls exists in an Engine checkout (skipped when unset).
 
 ### Boundaries
 
@@ -381,12 +426,15 @@ Le package expose:
 |---|---|
 | `client.auth` | login, inscription, connexion WhatsApp, grants bootstrap, session et utilisateur |
 | `client.products` | produits gérés par Engine |
-| `client.orders` | commandes génériques Engine |
+| `client.orders` | commandes génériques Engine (déprécié, disparaît avec la Sheet) |
 | `client.delivery` | cycle de vie livraison |
 | `client.search` | recherche produits, marchands et commandes |
 | `client.notifications` | notifications in-app |
 | `client.analytics` | `track` et `identify` authentifiés |
-| `client.bobo` | checkout, commandes, escrow et KYC BOBO |
+| `client.bobo` | checkout, commandes, escrow et KYC BOBO (déprécié, disparaît avec la Sheet) |
+| `client.commerce` | Commerce Sheet, côté vendeur : mise en ligne d'un produit, liens, conversions, commandes payées à la livraison |
+| `client.sheet` | Commerce Sheet, côté acheteur (sans compte) : lire la fiche d'un lien et payer |
+| `@yaatal/client/server` | serveur uniquement : `partnerAuth` (connexion WhatsApp partenaire) et `kairmelAdmin` |
 | `client.harness` | revue des propositions L1 du Yaatal Harness (list/approve/reject) |
 | `client.social` | événements sociaux entrants (WhatsApp, Telegram, ...) |
 | `client.ai` | passerelle IA d'Engine : Engine choisit le tier et le modèle |

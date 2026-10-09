@@ -1,6 +1,6 @@
 {
   "name": "@yaatal/client",
-  "version": "0.2.0-beta.0",
+  "version": "0.2.0-beta.1",
   "description": "Typed JavaScript/TypeScript client for Yaatal Engine",
   "type": "module",
   "license": "MIT OR Apache-2.0",
@@ -18,6 +18,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
     }
   },
   "files": [
@@ -34,7 +38,7 @@
     "test:cli": "node ./scripts/cli-smoke.mjs",
     "test:pispi": "node ./scripts/pispi-smoke.mjs",
     "test:pack-install": "node ./scripts/pack-install-smoke.mjs",
-    "test:unit": "node --test test/engine-catchup.test.mjs",
+    "test:unit": "node --test test/engine-catchup.test.mjs test/commerce.test.mjs test/server.test.mjs test/engine-routes.test.mjs",
     "example:node-smoke": "node ./examples/node-smoke.mjs",
     "check": "npm run test:contracts && npm run build && npm run test:cli && npm run test:pispi && npm run test:unit && npm run test:pack-install",
     "test": "npm run test:contracts && npm run build && npm run test:cli && npm run test:pispi && npm run test:unit",

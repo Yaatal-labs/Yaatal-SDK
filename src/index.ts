@@ -55,6 +55,30 @@ export {
   YaatalClient,
   type YaatalClientOptions,
 } from "./client.js";
+export { CommerceClient, SheetClient } from "./commerce.js";
+export type {
+  CommerceContact,
+  CommerceContactView,
+  CommerceConversions,
+  CommerceDelivery,
+  CommerceDeliveryOrder,
+  CommerceDeliveryStatus,
+  CommerceIntent,
+  CommerceKyc,
+  CommerceLedgerLine,
+  CommerceMoney,
+  CommercePayment,
+  CommerceProductCard,
+  CommerceProvider,
+  CommerceReceipt,
+  CommerceShareLinks,
+  CommerceSheet,
+  EscrowMoveResult,
+  ListCommerceDeliveriesParams,
+  ReceiptProof,
+  PutOnAirRequest,
+  SheetCheckoutRequest,
+} from "./commerce.js";
 export { DeliveryClient } from "./delivery.js";
 export type {
   ConfirmDeliveryByCodeRequest,

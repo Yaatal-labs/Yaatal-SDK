@@ -147,6 +147,7 @@ export interface BoboSubmitKycRequest {
   jurisdiction: string;
 }
 
+/** @deprecated The BOBO bridge retires with the Sheet. Use `client.commerce` and `client.sheet`. */
 export class BoboClient {
   constructor(private readonly http: EngineHttpClient) {}
 
