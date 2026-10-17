@@ -49,7 +49,7 @@ function runNpmInherit(args, cwd = root, env = process.env) {
 }
 
 function validatePackageMetadata(pkg) {
-  assert(pkg.name === "@yaatal/client", "package name must be @yaatal/client");
+  assert(pkg.name === "@yaatal-labs/client", "package name must be @yaatal-labs/client");
   assert(
     typeof pkg.version === "string" && /^\d+\.\d+\.\d+(-[\w.-]+)?$/.test(pkg.version),
     "package version must be a publishable semver string",
@@ -131,7 +131,7 @@ import {
   YaatalApiError,
   YaatalClient,
   createYaatalClient,
-} from "@yaatal/client";
+} from "@yaatal-labs/client";
 
 const requests = [];
 const fetchMock = async (input, init = {}) => {

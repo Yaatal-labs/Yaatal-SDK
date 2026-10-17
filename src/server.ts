@@ -1,6 +1,6 @@
-// Server-only entry: `import { partnerAuth, kairmelAdmin } from "@yaatal/client/server"`.
+// Server-only entry: `import { partnerAuth, kairmelAdmin } from "@yaatal-labs/client/server"`.
 //
-// Everything here holds a shared secret or an admin token. The main entry (`@yaatal/client`) never
+// Everything here holds a shared secret or an admin token. The main entry (`@yaatal-labs/client`) never
 // imports this file, so a browser or mobile bundle cannot pick it up by accident. Run it on a
 // backend only.
 

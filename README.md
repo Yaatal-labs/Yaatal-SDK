@@ -1,4 +1,4 @@
-# @yaatal/client
+# @yaatal-labs/client
 
 Typed TypeScript client for Yaatal Engine.
 
@@ -8,14 +8,14 @@ Client TypeScript typé pour Yaatal Engine.
 
 ## English
 
-`@yaatal/client` is the frontend and integration client for Yaatal Engine. It
+`@yaatal-labs/client` is the frontend and integration client for Yaatal Engine. It
 does not run a server and it does not own business state. Install it in BOBO or
 another app, point it at an Engine URL, then call typed methods instead of
 hand-writing `fetch` calls.
 
 ```text
 BOBO or another UI
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> Yaatal Engine HTTP API
   -> Engine database and business rules
 ```
@@ -138,13 +138,13 @@ service schemas, so `startEgress` passes a JSON object through and egress respon
 Engine voice (`client.voice`) is deprecated and scheduled for retirement. App voice, including
 Kairmel, uses its own talker.
 
-### Server-only helpers (`@yaatal/client/server`)
+### Server-only helpers (`@yaatal-labs/client/server`)
 
-Holds secrets, so it is a separate entry that the main `@yaatal/client` never imports. Use it on a
+Holds secrets, so it is a separate entry that the main `@yaatal-labs/client` never imports. Use it on a
 backend only.
 
 ```ts
-import { partnerAuth, kairmelAdmin } from "@yaatal/client/server";
+import { partnerAuth, kairmelAdmin } from "@yaatal-labs/client/server";
 
 // WhatsApp sign-in for a partner platform: needs ENGINE_AUTH_SECRET (and YAATAL_ENGINE_API_URL).
 const { id, whatsapp_url } = await partnerAuth.start();
@@ -171,7 +171,7 @@ balance in XOF. It has its own address (`https://api.kairmel.com`, the client's 
 `yk_...` keys, separate from Engine sessions. Keep the key server-side.
 
 ```ts
-import { createKairmelClient } from "@yaatal/client";
+import { createKairmelClient } from "@yaatal-labs/client";
 
 const api = createKairmelClient({ apiKey: process.env.KAIRMEL_API_KEY }); // baseUrl or KAIRMEL_API_URL to point elsewhere
 
@@ -198,7 +198,7 @@ interoperable payment-QR payloads locally. See [CLI](#cli) below for the
 After npm publication:
 
 ```bash
-npm install @yaatal/client@beta
+npm install @yaatal-labs/client@beta
 ```
 
 Before npm publication, or when testing directly from GitHub:
@@ -231,7 +231,7 @@ YAATAL_ENGINE_API_URL=https://your-engine-staging-url
 You can also pass the URL directly:
 
 ```ts
-import { createYaatalClient } from "@yaatal/client";
+import { createYaatalClient } from "@yaatal-labs/client";
 
 const client = createYaatalClient({
   baseUrl: "http://localhost:5150",
@@ -274,14 +274,14 @@ service or hook layer:
 ```text
 BOBO screen
   -> BOBO hook/service
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> Engine
 ```
 
 Example:
 
 ```ts
-import { createYaatalClient } from "@yaatal/client";
+import { createYaatalClient } from "@yaatal-labs/client";
 
 export function makeYaatalClient(token?: string) {
   return createYaatalClient({
@@ -403,7 +403,7 @@ prompts, so it is safe to call from an agent's tool loop. `yaatal --help` and
 
 Agent integration note: if you are wiring an agent to this SDK, list `yaatal`
 under an "Available CLIs" section in that agent's `CLAUDE.md`/`AGENTS.md`
-rather than having it call `@yaatal/client` via raw HTTP.
+rather than having it call `@yaatal-labs/client` via raw HTTP.
 
 ### Contributor Paths
 
@@ -437,7 +437,7 @@ generates the publishable `dist/` files. `test:cli` builds against a stub
 HTTP engine and exercises the `yaatal` CLI end to end. `test:pispi` exercises
 offline PI-SPI QR generation (`src/pispi.ts`) with a dummy UUID-v4 alias.
 `test:pack-install` packs the package, installs it into a temporary consumer
-app, and imports `@yaatal/client` through
+app, and imports `@yaatal-labs/client` through
 the package export. `test:unit` runs the behavioural tests against a fake fetch; set
 `ENGINE_CONTROLLERS_DIR=<engine>/crates/yaatal-api/src/controllers` to also check that every route
 the SDK calls exists in an Engine checkout (skipped when unset).
@@ -453,14 +453,14 @@ the SDK calls exists in an Engine checkout (skipped when unset).
 
 ## Francais
 
-`@yaatal/client` est le client d'intégration pour Yaatal Engine. Il ne lance pas
+`@yaatal-labs/client` est le client d'intégration pour Yaatal Engine. Il ne lance pas
 de serveur et ne garde pas l'état métier. Installez-le dans BOBO ou dans une
 autre app, pointez-le vers une URL Engine, puis utilisez des méthodes typées au
 lieu d'écrire des appels `fetch` à la main.
 
 ```text
 BOBO ou une autre UI
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> API HTTP Yaatal Engine
   -> base de données et règles métier Engine
 ```
@@ -492,7 +492,7 @@ Le package expose:
 | `client.liveSessions` | directs, produits épinglés, vue publique, mots-clés, multistream |
 | `client.commerce` | Commerce Sheet, côté vendeur : mise en ligne d'un produit, liens, conversions, commandes payées à la livraison |
 | `client.sheet` | Commerce Sheet, côté acheteur (sans compte) : lire la fiche d'un lien et payer |
-| `@yaatal/client/server` | serveur uniquement : `partnerAuth` (connexion WhatsApp partenaire) et `kairmelAdmin` |
+| `@yaatal-labs/client/server` | serveur uniquement : `partnerAuth` (connexion WhatsApp partenaire) et `kairmelAdmin` |
 | `client.harness` | revue des propositions L1 du Yaatal Harness (list/approve/reject) |
 | `client.social` | événements sociaux entrants (WhatsApp, Telegram, ...) |
 | `client.ai` | passerelle IA d'Engine : Engine choisit le tier et le modèle |
@@ -548,7 +548,7 @@ dont Kairmel, utilise son propre talker.
 Après publication npm:
 
 ```bash
-npm install @yaatal/client@beta
+npm install @yaatal-labs/client@beta
 ```
 
 Avant publication npm, ou pour tester directement depuis GitHub:
@@ -581,7 +581,7 @@ YAATAL_ENGINE_API_URL=https://votre-url-engine-staging
 Vous pouvez aussi passer l'URL directement:
 
 ```ts
-import { createYaatalClient } from "@yaatal/client";
+import { createYaatalClient } from "@yaatal-labs/client";
 
 const client = createYaatalClient({
   baseUrl: "http://localhost:5150",
@@ -624,14 +624,14 @@ une petite couche service ou hook de l'app:
 ```text
 écran BOBO
   -> hook/service BOBO
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> Engine
 ```
 
 Exemple:
 
 ```ts
-import { createYaatalClient } from "@yaatal/client";
+import { createYaatalClient } from "@yaatal-labs/client";
 
 export function makeYaatalClient(token?: string) {
   return createYaatalClient({
@@ -712,7 +712,7 @@ npm publish --dry-run --tag beta --access public
 
 `test:contracts` vérifie le contrat source sans service externe. `build`
 génère les fichiers publiables dans `dist/`. `test:pack-install` prépare le
-package, l'installe dans une app temporaire et importe `@yaatal/client` via
+package, l'installe dans une app temporaire et importe `@yaatal-labs/client` via
 l'export du package.
 
 ### Limites

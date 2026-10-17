@@ -5,7 +5,7 @@
 ## English
 
 This guide is for BOBO and other frontend contributors. The goal is to keep UI
-work simple: install `@yaatal/client`, configure one Engine URL, then call
+work simple: install `@yaatal-labs/client`, configure one Engine URL, then call
 typed SDK methods from app services or hooks.
 
 ### What Changes In The App
@@ -28,7 +28,7 @@ await boboOrders.confirmDelivery(orderId);
 where the helper uses the SDK:
 
 ```ts
-import { createYaatalClient } from "@yaatal/client";
+import { createYaatalClient } from "@yaatal-labs/client";
 
 export function makeYaatalClient(token?: string) {
   return createYaatalClient({
@@ -43,7 +43,7 @@ export function makeYaatalClient(token?: string) {
 ```text
 screen/component
   -> hook or feature service
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> Engine
 ```
 
@@ -93,7 +93,7 @@ method has been tested.
 ### Minimal BOBO Service Example
 
 ```ts
-import { createYaatalClient, type BoboCheckoutRequest } from "@yaatal/client";
+import { createYaatalClient, type BoboCheckoutRequest } from "@yaatal-labs/client";
 
 export function createBoboApi(input: { token?: string; engineUrl?: string }) {
   const client = createYaatalClient({
@@ -125,7 +125,7 @@ export function createBoboApi(input: { token?: string; engineUrl?: string }) {
 ## Francais
 
 Ce guide s'adresse aux contributeurs BOBO et frontend. Le but est de garder le
-travail UI simple: installer `@yaatal/client`, configurer une seule URL Engine,
+travail UI simple: installer `@yaatal-labs/client`, configurer une seule URL Engine,
 puis appeler des méthodes SDK typées depuis des services ou hooks de l'app.
 
 ### Ce Qui Change Dans L'App
@@ -148,7 +148,7 @@ await boboOrders.confirmDelivery(orderId);
 où le helper utilise le SDK:
 
 ```ts
-import { createYaatalClient } from "@yaatal/client";
+import { createYaatalClient } from "@yaatal-labs/client";
 
 export function makeYaatalClient(token?: string) {
   return createYaatalClient({
@@ -163,7 +163,7 @@ export function makeYaatalClient(token?: string) {
 ```text
 screen/component
   -> hook ou service feature
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> Engine
 ```
 
@@ -213,7 +213,7 @@ Engine. Ne supprimez pas un chemin PocketBase tant que l'endpoint Engine
 ### Exemple De Service BOBO Minimal
 
 ```ts
-import { createYaatalClient, type BoboCheckoutRequest } from "@yaatal/client";
+import { createYaatalClient, type BoboCheckoutRequest } from "@yaatal-labs/client";
 
 export function createBoboApi(input: { token?: string; engineUrl?: string }) {
   const client = createYaatalClient({

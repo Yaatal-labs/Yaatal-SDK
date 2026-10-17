@@ -2,17 +2,17 @@
 
 This guide shows how to connect OpenAI, Anthropic, Groq, Ollama, Hugging Face,
 RunPod, or a custom model service to Yaatal Engine without changing Engine or
-adding an AI namespace to `@yaatal/client`.
+adding an AI namespace to `@yaatal-labs/client`.
 
 Ce guide montre comment connecter OpenAI, Anthropic, Groq, Ollama, Hugging Face,
 RunPod ou un service modele sur mesure a Yaatal Engine sans modifier Engine et
-sans ajouter de namespace IA a `@yaatal/client`.
+sans ajouter de namespace IA a `@yaatal-labs/client`.
 
 ## English
 
 ### V1 Contract
 
-`@yaatal/client` V1 is the Engine control-plane client. It covers auth,
+`@yaatal-labs/client` V1 is the Engine control-plane client. It covers auth,
 products, orders, delivery, BOBO commerce, search, notifications, and analytics.
 It intentionally does not expose `client.ai` in V1.
 
@@ -26,8 +26,8 @@ state-changing action.
 Use one of two paths, often both in the same app:
 
 ```text
-App -> AI service -> @yaatal/client -> Engine
-App -> @yaatal/client -> Engine
+App -> AI service -> @yaatal-labs/client -> Engine
+App -> @yaatal-labs/client -> Engine
 ```
 
 The AI-assisted path is for search help, summarization, recommendations, draft
@@ -41,13 +41,13 @@ App
   sends user message and Engine JWT
 AI service
   calls OpenAI, Anthropic, Groq, Ollama, Hugging Face, RunPod, or custom model
-  calls @yaatal/client with the Engine JWT
+  calls @yaatal-labs/client with the Engine JWT
 Engine
   validates JWT, enforces ownership, writes business state only on confirmed calls
 ```
 
 Do not send the Engine JWT to the model provider. The AI service can use the JWT
-to call Engine through `@yaatal/client`, but prompts sent to providers should
+to call Engine through `@yaatal-labs/client`, but prompts sent to providers should
 contain only the minimum product/order context needed for the response.
 
 ### Boundary Rules
@@ -102,7 +102,7 @@ import {
   createYaatalClient,
   type CreateOrderRequest,
   type Product,
-} from "@yaatal/client";
+} from "@yaatal-labs/client";
 
 type AiOrderDraft = {
   productIds: string[];
@@ -223,7 +223,7 @@ POST /orders/confirmed
 - OpenAI, Anthropic, Groq, Hugging Face, and RunPod: call the provider from the
   AI service, never from Engine.
 - Ollama or another local model: the AI service can call a local URL, then use
-  `@yaatal/client` exactly the same way.
+  `@yaatal-labs/client` exactly the same way.
 - Custom service: implement the same provider-neutral interface and return
   structured drafts. Keep Engine as the only system of record.
 - Retrieval and ranking can be AI-assisted, but product IDs, seller IDs, prices,
@@ -233,7 +233,7 @@ POST /orders/confirmed
 
 ### Contrat V1
 
-`@yaatal/client` V1 est le client de controle pour Engine. Il couvre auth,
+`@yaatal-labs/client` V1 est le client de controle pour Engine. Il couvre auth,
 produits, commandes, livraison, commerce BOBO, recherche, notifications et
 analytics. Il n'expose volontairement pas `client.ai` en V1.
 
@@ -248,8 +248,8 @@ l'etat metier.
 Utilisez un de ces deux chemins, souvent les deux dans la meme app:
 
 ```text
-App -> service IA -> @yaatal/client -> Engine
-App -> @yaatal/client -> Engine
+App -> service IA -> @yaatal-labs/client -> Engine
+App -> @yaatal-labs/client -> Engine
 ```
 
 Le chemin assiste par IA sert a aider la recherche, resumer, recommander,
@@ -263,13 +263,13 @@ App
   envoie le message utilisateur et le JWT Engine
 service IA
   appelle OpenAI, Anthropic, Groq, Ollama, Hugging Face, RunPod ou un modele prive
-  appelle @yaatal/client avec le JWT Engine
+  appelle @yaatal-labs/client avec le JWT Engine
 Engine
   valide le JWT, applique les droits, ecrit l'etat metier seulement apres confirmation
 ```
 
 N'envoyez pas le JWT Engine au fournisseur modele. Le service IA peut utiliser
-le JWT pour appeler Engine via `@yaatal/client`, mais les prompts envoyes aux
+le JWT pour appeler Engine via `@yaatal-labs/client`, mais les prompts envoyes aux
 fournisseurs doivent contenir seulement le contexte produit/commande minimum.
 
 ### Regles De Frontiere
@@ -341,7 +341,7 @@ POST /orders/confirmed
 - OpenAI, Anthropic, Groq, Hugging Face et RunPod: appelez le fournisseur depuis
   le service IA, jamais depuis Engine.
 - Ollama ou autre modele local: le service IA peut appeler une URL locale, puis
-  utiliser `@yaatal/client` de la meme facon.
+  utiliser `@yaatal-labs/client` de la meme facon.
 - Service sur mesure: implementez la meme interface neutre et retournez des
   brouillons structures. Engine reste la seule source de verite.
 - Le retrieval et le ranking peuvent etre assistes par IA, mais product IDs,

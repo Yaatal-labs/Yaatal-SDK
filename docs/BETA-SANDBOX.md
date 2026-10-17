@@ -9,7 +9,7 @@ testers. It is not a public multitenant Yaatal Cloud environment.
 
 ```text
 BOBO or contributor app
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> staging Engine URL
   -> isolated staging database
 ```
@@ -30,7 +30,7 @@ BOBO or contributor app
 ### What Contributors Need
 
 ```bash
-npm install @yaatal/client@beta
+npm install @yaatal-labs/client@beta
 ```
 
 or, before npm publication:
@@ -80,7 +80,7 @@ et les testeurs. Ce n'est pas un environnement Yaatal Cloud public multitenant.
 
 ```text
 BOBO ou app contributeur
-  -> @yaatal/client
+  -> @yaatal-labs/client
   -> URL Engine staging
   -> base staging isolée
 ```
@@ -101,7 +101,7 @@ BOBO ou app contributeur
 ### Ce Qu'Il Faut Côté Contributeur
 
 ```bash
-npm install @yaatal/client@beta
+npm install @yaatal-labs/client@beta
 ```
 
 ou, avant publication npm:

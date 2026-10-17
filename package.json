@@ -1,5 +1,5 @@
 {
-  "name": "@yaatal/client",
+  "name": "@yaatal-labs/client",
   "version": "0.3.0-beta.1",
   "description": "Typed JavaScript/TypeScript client for Yaatal Engine",
   "type": "module",

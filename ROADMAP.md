@@ -9,7 +9,7 @@ real Engine contracts.
 
 ### Beta
 
-- Publish `@yaatal/client@beta`.
+- Publish `@yaatal-labs/client@beta`.
 - Keep install from GitHub supported for early contributors.
 - Point BOBO beta builds at a staging Engine sandbox.
 - Wire BOBO UI flows through SDK services/hooks.
@@ -40,7 +40,7 @@ et suivre les vrais contrats Engine.
 
 ### Beta
 
-- Publier `@yaatal/client@beta`.
+- Publier `@yaatal-labs/client@beta`.
 - Garder l'installation depuis GitHub pour les premiers contributeurs.
 - Pointer les builds BOBO beta vers un sandbox Engine staging.
 - Brancher les flux UI BOBO via des services/hooks qui utilisent le SDK.

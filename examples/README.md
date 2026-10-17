@@ -1,10 +1,10 @@
 # Examples / Exemples
 
 These examples are for contributors wiring apps to Engine through
-`@yaatal/client`.
+`@yaatal-labs/client`.
 
 Ces exemples aident les contributeurs a brancher des apps a Engine via
-`@yaatal/client`.
+`@yaatal-labs/client`.
 
 ## Files
 

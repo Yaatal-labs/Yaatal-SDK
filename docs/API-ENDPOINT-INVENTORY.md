@@ -15,7 +15,7 @@ the custom health route is listed below as `/health`.
 
 ### Coverage Key
 
-- `SDK V1`: exposed by `@yaatal/client`.
+- `SDK V1`: exposed by `@yaatal-labs/client`.
 - `Engine-only`: available over HTTP, not part of SDK V1.
 - `External`: intended for provider/webhook callers, not app SDK callers.
 - `Covered`: has request-test coverage in `crates/yaatal-api/tests/requests`.
@@ -124,7 +124,7 @@ comme `/health`.
 
 ### Lecture Des Statuts
 
-- `SDK V1`: expose par `@yaatal/client`.
+- `SDK V1`: expose par `@yaatal-labs/client`.
 - `Engine-only`: disponible en HTTP, mais hors SDK V1.
 - `External`: prevu pour un provider ou webhook, pas pour le SDK applicatif.
 - `Covered`: couvert par les request tests dans `crates/yaatal-api/tests/requests`.

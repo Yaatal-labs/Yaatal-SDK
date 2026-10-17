@@ -2,7 +2,7 @@ import {
   createYaatalClient,
   type BoboCheckoutRequest,
   type YaatalClient,
-} from "@yaatal/client";
+} from "@yaatal-labs/client";
 
 export interface BoboApiOptions {
   engineUrl?: string;
