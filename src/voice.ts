@@ -9,10 +9,14 @@ export interface TranscribeOptions {
   contentType?: string;
 }
 
+/** @deprecated Engine /api/voice/* is scheduled for retirement. App voice (e.g. Kairmel) uses its own talker. */
 export class VoiceClient {
   constructor(private readonly http: EngineHttpClient) {}
 
-  /** Transcribe one audio clip. The body is the raw audio, not JSON. Requires a signed-in client. */
+  /**
+   * Transcribe one audio clip. The body is raw audio, not JSON. Requires a signed-in client.
+   * @deprecated Engine /api/voice/* is scheduled for retirement. App voice uses its own talker.
+   */
   transcribe(
     audio: Blob | ArrayBuffer | Uint8Array,
     options: TranscribeOptions = {},
@@ -27,6 +31,7 @@ export class VoiceClient {
   /**
    * The WebSocket URL for a live voice session. Browsers cannot set headers on a WebSocket, so the
    * session token travels in the query string; treat the URL as a secret and do not log it.
+   * @deprecated Engine /api/voice/* is scheduled for retirement. App voice uses its own talker.
    */
   sessionUrl(token?: string): string {
     const sessionToken = token ?? this.http.currentToken();

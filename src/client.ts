@@ -11,6 +11,7 @@ import { HarnessClient } from "./harness.js";
 import { EngineHttpClient, type FetchLike } from "./http.js";
 import { KairmelClient, type KairmelClientOptions } from "./inference.js";
 import { LiveKitClient } from "./livekit.js";
+import { MerchantClient } from "./merchant.js";
 import { NotificationsClient } from "./notifications.js";
 import { OrdersClient } from "./orders.js";
 import { ProductsClient } from "./products.js";
@@ -47,6 +48,7 @@ export class YaatalClient {
   readonly inference: KairmelClient | undefined;
   readonly livekit: LiveKitClient;
   readonly liveSessions: LiveSessionsClient;
+  readonly merchant: MerchantClient;
   readonly notifications: NotificationsClient;
   readonly products: ProductsClient;
   /**
@@ -89,6 +91,7 @@ export class YaatalClient {
       : undefined;
     this.livekit = new LiveKitClient(this.http);
     this.liveSessions = new LiveSessionsClient(this.http);
+    this.merchant = new MerchantClient(this.http);
     this.notifications = new NotificationsClient(this.http);
     this.products = new ProductsClient(this.http);
     this.orders = new OrdersClient(this.http);

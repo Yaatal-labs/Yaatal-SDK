@@ -94,9 +94,9 @@ test("voice: raw audio upload, and a WebSocket session URL", async () => {
 test("LiveKit token", async () => {
   const { fetch, calls } = fakeFetch(() => ({ token: "lk", url: "wss://lk.test", room: "live-1", identity: "p1", recording_enabled: false }));
   const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
-  const token = await client.livekit.token({ room: "live-1", room_type: "broadcast" });
+  const token = await client.livekit.token({ live_session_id: "1", room_type: "broadcast" });
   assert.equal(token.url, "wss://lk.test");
-  assert.deepEqual(calls[0].body, { room: "live-1", room_type: "broadcast" });
+  assert.deepEqual(calls[0].body, { live_session_id: "1", room_type: "broadcast" });
 });
 
 test("Kairmel API: public models with XOF prices, keyed chat and balance", async () => {
@@ -159,4 +159,97 @@ test("client.inference exists only when configured, and reuses the client's fetc
   const client = createYaatalClient({ baseUrl: ENGINE, fetch, inference: { baseUrl: API, apiKey: "yk_test" } });
   await client.inference.balance();
   assert.equal(calls[0].url, `${API}/v1/balance`);
+});
+
+
+test("merchant workspace: scoped reads, pagination, and payout destination", async () => {
+  const dashboard = { total_revenue_cents: 25000, total_orders: 2, orders_by_status: { delivered: 1, pending: 1 } };
+  const kyc = { status: "pending", document_ref: "CNI 1", submitted_at: "t", reviewed_at: null, payout_mobile: "+221770000000" };
+  const { fetch, calls } = fakeFetch(url => url.endsWith("/dashboard") ? dashboard
+    : url.endsWith("/payout-destination") ? kyc
+    : url.includes("/products") ? { products: [], total: 0, page: 2, per_page: 10 }
+    : { orders: [], total: 0, page: 3, per_page: 5 });
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+  assert.deepEqual(await client.merchant.dashboard(), dashboard);
+  assert.equal((await client.merchant.products({ page: 2, per_page: 10 })).page, 2);
+  assert.equal((await client.merchant.orders({ page: 3, per_page: 5 })).per_page, 5);
+  await client.merchant.products();
+  await client.merchant.orders();
+  assert.deepEqual(await client.commerce.setPayoutDestination({ mobile: kyc.payout_mobile }), kyc);
+  assert.deepEqual(calls.map(c => [c.method, c.url.replace(ENGINE, "")]), [
+    ["GET", "/api/merchant/dashboard"],
+    ["GET", "/api/merchant/products?page=2&per_page=10"],
+    ["GET", "/api/merchant/orders?page=3&per_page=5"],
+    ["GET", "/api/merchant/products"],
+    ["GET", "/api/merchant/orders"],
+    ["POST", "/api/commerce/kyc/payout-destination"],
+  ]);
+  assert.deepEqual(calls[5].body, { mobile: kyc.payout_mobile });
+  for (const c of calls) assert.equal(c.headers.get("authorization"), "Bearer jwt-1");
+});
+
+test("live selling: lifecycle bodies, encoded IDs and anonymous viewer calls", async () => {
+  const pinned = { product_id: "p1", name: "Boubou", price_fcfa: 25000, image_url: null, keyword: "BOUBOU", sheet_url: "https://engine.test/b/tok?src=livestream" };
+  const started = { id: "live1", room: "live-live1", status: "active", started_at: "t" };
+  const ended = { id: "live1", status: "ended", ended_at: "t" };
+  const view = { id: "live1", status: "active", seller: { name: null }, pinned, livekit_url: null, keyword_channels: { telegram: null, whatsapp: null } };
+  const { fetch, calls } = fakeFetch(url => url.endsWith("/end") ? ended
+    : url.endsWith("/pin") ? { pinned }
+    : url.endsWith("/keyword") ? { match: pinned }
+    : url.endsWith("/public") ? view
+    : url.endsWith("/current/products") ? { session: { id: "live1", merchant_id: "m1", product_id: null, status: "active", started_at: "t", ended_at: null, created_at: "t", updated_at: "t" }, products: [] } : started);
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+  assert.deepEqual(await client.liveSessions.start(), started);
+  assert.deepEqual(await client.liveSessions.pin("live/1", { product_id: "p1", keyword: "BOUBOU" }), { pinned });
+  await client.liveSessions.pin("live/1", { product_id: null });
+  assert.deepEqual(await client.liveSessions.keyword("live/1", { text: "BOUBOU" }), { match: pinned });
+  assert.deepEqual(await client.liveSessions.public("live/1"), view);
+  assert.deepEqual(await client.liveSessions.end("live/1"), ended);
+  assert.equal((await client.liveSessions.currentProducts()).session.id, "live1");
+  assert.deepEqual(calls.map(c => [c.method, c.url.replace(ENGINE, "")]), [
+    ["POST", "/api/live-sessions/"],
+    ["PUT", "/api/live-sessions/live%2F1/pin"],
+    ["PUT", "/api/live-sessions/live%2F1/pin"],
+    ["POST", "/api/live-sessions/live%2F1/keyword"],
+    ["GET", "/api/live-sessions/live%2F1/public"],
+    ["POST", "/api/live-sessions/live%2F1/end"],
+    ["GET", "/api/live-sessions/current/products"],
+  ]);
+  assert.equal(calls[0].body, undefined);
+  assert.equal(calls[5].body, undefined);
+  assert.deepEqual(calls[1].body, { product_id: "p1", keyword: "BOUBOU" });
+  assert.deepEqual(calls[2].body, { product_id: null });
+  assert.deepEqual(calls[3].body, { text: "BOUBOU" });
+  for (const [i, c] of calls.entries()) assert.equal(c.headers.get("authorization"), [3, 4].includes(i) ? null : "Bearer jwt-1");
+});
+
+test("LiveKit viewer token is anonymous even on a signed-in client", async () => {
+  const token = { token: "lk-viewer", url: "wss://lk.test", room: "live-live1", identity: "viewer-1", recording_enabled: false };
+  const { fetch, calls } = fakeFetch(() => token);
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+  assert.deepEqual(await client.livekit.viewerToken({ live_session_id: "live1" }), token);
+  assert.equal(calls[0].url, ENGINE + "/api/livekit/viewer-token");
+  assert.equal(calls[0].method, "POST");
+  assert.equal(calls[0].headers.get("authorization"), null);
+  assert.deepEqual(calls[0].body, { live_session_id: "live1" });
+});
+
+
+test("egress: opaque JSON pass-through, owner auth, encoded session and job IDs", async () => {
+  // The service schemas are absent from the reference; this checks transport without inventing them.
+  const answer = { opaque: true };
+  const { fetch, calls } = fakeFetch(() => answer);
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+  assert.deepEqual(await client.liveSessions.egress("live/1"), answer);
+  assert.deepEqual(await client.liveSessions.startEgress("live/1", {}), answer);
+  assert.deepEqual(await client.liveSessions.stopEgress("live/1", "job/1"), answer);
+  assert.deepEqual(calls.map(c => [c.method, c.url.replace(ENGINE, "")]), [
+    ["GET", "/api/live-sessions/live%2F1/egress"],
+    ["POST", "/api/live-sessions/live%2F1/egress"],
+    ["POST", "/api/live-sessions/live%2F1/egress/job%2F1/stop"],
+  ]);
+  assert.equal(calls[0].body, undefined);
+  assert.deepEqual(calls[1].body, {});
+  assert.equal(calls[2].body, undefined);
+  for (const c of calls) assert.equal(c.headers.get("authorization"), "Bearer jwt-1");
 });
