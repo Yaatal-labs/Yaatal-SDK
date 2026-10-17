@@ -155,3 +155,15 @@ test("sheet: the buyer reads back, confirms or disputes with their proof, never 
   assert.deepEqual(calls[2].body, { reason: "Pas reçu" });
   for (const c of calls) assert.equal(c.headers.get("authorization"), null);
 });
+
+
+test("commerce: shipping a paid online order encodes the receipt ID", async () => {
+  const order = { receipt: { ...receipt, payment_status: "paid" }, contact: null };
+  const { fetch, calls } = fakeFetch(() => order);
+  const client = createYaatalClient({ baseUrl: ENGINE, token: "jwt-1", fetch });
+  assert.deepEqual(await client.commerce.updateDelivery("r/1", { status: "shipped" }), order);
+  assert.equal(calls[0].url, ENGINE + "/api/commerce/deliveries/r%2F1");
+  assert.equal(calls[0].method, "PATCH");
+  assert.equal(calls[0].headers.get("authorization"), "Bearer jwt-1");
+  assert.deepEqual(calls[0].body, { status: "shipped" });
+});

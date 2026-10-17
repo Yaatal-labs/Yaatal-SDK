@@ -36,6 +36,8 @@ The package exposes:
 |---|---|
 | `client.auth` | login, registration, WhatsApp sign-in, bootstrap grants, session/user helpers |
 | `client.products` | product CRUD/listing backed by Engine |
+| `client.merchant` | seller dashboard and paginated products/orders |
+| `client.liveSessions` | live lifecycle, pins, public viewer projection, keywords, multistream |
 | `client.orders` | generic Engine order APIs (deprecated, retires with the Sheet) |
 | `client.delivery` | generic delivery lifecycle APIs |
 | `client.search` | SQL-backed product, merchant, and order search (`search.orders` is deprecated) |
@@ -98,6 +100,44 @@ await client.sheet.confirm(token, receipt.receipt_id, { tx: receipt.payment!.tx_
 await client.commerce.buyTokenPack(packToken, { provider: "wave", idempotency_key: crypto.randomUUID() });
 ```
 
+### Merchant Workspace
+
+Read the signed-in seller's dashboard and paginated product/order lists. Payouts and delivery
+updates live on `client.commerce`, alongside the other merchant commerce calls.
+
+```ts
+const dashboard = await client.merchant.dashboard();
+const products = await client.merchant.products({ page: 1, per_page: 20 });
+const orders = await client.merchant.orders({ page: 1, per_page: 20 });
+await client.commerce.setPayoutDestination({ mobile: "+221770000000" });
+await client.commerce.updateDelivery(receiptId, { status: "shipped" }); // online orders
+```
+
+### Live Selling
+
+Start a live, pin a product with a keyword, then end the session. Starting takes no input and
+reuses an existing active session. `currentProducts()` still reads the seller's product queue.
+
+```ts
+const live = await client.liveSessions.start();
+await client.liveSessions.pin(live.id, { product_id, keyword: "BOUBOU" });
+const publisher = await client.livekit.token({ room_type: "broadcast", live_session_id: live.id });
+// Anonymous viewer calls omit bearer auth, even on a signed-in client:
+const view = await client.liveSessions.public(live.id);
+const viewer = await client.livekit.viewerToken({ live_session_id: live.id });
+const match = await client.liveSessions.keyword(live.id, { text: "BOUBOU" });
+await client.liveSessions.pin(live.id, { product_id: null }); // unpin
+await client.liveSessions.end(live.id);
+```
+
+Multistream uses `egress`, `startEgress` and `stopEgress`. Starting returns HTTP 503
+`not_configured` when `LIVE_EGRESS_ENABLED` is off or LiveKit is unconfigured. Destination
+stream keys are transient: the SDK never logs or stores them. The reference omits the egress
+service schemas, so `startEgress` passes a JSON object through and egress responses are `unknown`.
+
+Engine voice (`client.voice`) is deprecated and scheduled for retirement. App voice, including
+Kairmel, uses its own talker.
+
 ### Server-only helpers (`@yaatal/client/server`)
 
 Holds secrets, so it is a separate entry that the main `@yaatal/client` never imports. Use it on a
@@ -148,8 +188,8 @@ const { balance_xof } = await api.balance();
 Any OpenAI SDK also works: set its base URL to `https://api.kairmel.com/v1` and use a Kairmel key.
 
 Separately, `createStaticMerchantQr` / `createDynamicMerchantQr` /
-`validatePiSpiQrPayload` (`src/pispi.ts`) are plain, offline functions — not
-an Engine-backed `client.*` namespace — for generating BCEAO PI-SPI
+`validatePiSpiQrPayload` (`src/pispi.ts`) are plain, offline functions for
+generating BCEAO PI-SPI
 interoperable payment-QR payloads locally. See [CLI](#cli) below for the
 `yaatal pispi qr` command.
 
@@ -280,7 +320,7 @@ const checkout = await client.bobo.checkout({
 await client.bobo.confirmDelivery(checkout.order.bobo_order_id);
 ```
 
-PI-SPI has two flows. Omit `pispi_alias` for the **QR** flow — the merchant
+PI-SPI has two flows. Omit `pispi_alias` for the **QR** flow; the merchant
 presents a dynamic QR (the top-level `createDynamicMerchantQr`) carrying the order
 reference, the buyer scans it, and the Engine settles by polling. Supply the
 buyer's 36-character payment address to send a **request-to-pay** instead:
@@ -305,7 +345,7 @@ await client.bobo.checkout({
 
 ### CLI
 
-The package also ships a `yaatal` kernel CLI — a small, agent-first command
+The package also ships a `yaatal` kernel CLI, a small, agent-first command
 surface over the same client, for driving Engine from a terminal or from an
 agent's tool loop instead of hand-writing `fetch`/`curl` calls.
 
@@ -342,13 +382,13 @@ yaatal pispi qr --alias <uuid-v4> [--amount <xof>] [--name <s>] [--city <s>] [--
 
 `pispi qr` generates a BCEAO PI-SPI interoperable payment-QR (EMVCo payload,
 GUID `int.bceao.pi`, currency `952`/XOF) fully offline via BCEAO's official
-`@pi-spi/qrcode` package — it makes no Engine call and needs no
+`@pi-spi/qrcode` package; it makes no Engine call and needs no
 `YAATAL_ENGINE_URL`. `--alias` must be a UUID v4 (the package's own
 validator rejects anything else, despite one non-UUID example surviving in
-that package's own README — see `src/pispi.ts` for the discrepancy).
+that package's own README; see `src/pispi.ts` for the discrepancy).
 Passing `--amount` produces a DYNAMIC QR; omitting it produces a STATIC one.
 `--name`/`--city` are accepted for interface stability but currently have no
-effect on the payload — this package version hardcodes EMV tags 59/60 to a
+effect on the payload; this package version hardcodes EMV tags 59/60 to a
 placeholder. **Honesty note:** this only generates format-valid QR payloads;
 a real merchant alias comes solely from PI-SPI onboarding, so scanning one of
 these QRs in production requires that registration first (see
@@ -448,6 +488,8 @@ Le package expose:
 | `client.notifications` | notifications in-app |
 | `client.analytics` | `track` et `identify` authentifiés |
 | `client.bobo` | checkout, commandes, escrow et KYC BOBO (déprécié, disparaît avec la Sheet) |
+| `client.merchant` | tableau de bord vendeur, produits et commandes paginés |
+| `client.liveSessions` | directs, produits épinglés, vue publique, mots-clés, multistream |
 | `client.commerce` | Commerce Sheet, côté vendeur : mise en ligne d'un produit, liens, conversions, commandes payées à la livraison |
 | `client.sheet` | Commerce Sheet, côté acheteur (sans compte) : lire la fiche d'un lien et payer |
 | `@yaatal/client/server` | serveur uniquement : `partnerAuth` (connexion WhatsApp partenaire) et `kairmelAdmin` |
@@ -461,6 +503,45 @@ Le package expose:
 Chaque app peut toujours brancher son propre service IA ; voir
 [Intégration IA externe](docs/BYO-AI-INTEGRATION.md). La connexion WhatsApp et l'API Kairmel
 sont décrites en exemple dans la partie anglaise ci-dessus.
+
+### Espace Marchand
+
+`client.merchant` expose le tableau de bord et les listes paginées de produits et commandes
+du vendeur connecté. Les destinations de versement et les livraisons restent sur `client.commerce`.
+
+```ts
+const dashboard = await client.merchant.dashboard();
+const products = await client.merchant.products({ page: 1, per_page: 20 });
+const orders = await client.merchant.orders({ page: 1, per_page: 20 });
+await client.commerce.setPayoutDestination({ mobile: "+221770000000" });
+await client.commerce.updateDelivery(receiptId, { status: "shipped" });
+```
+
+### Vente En Direct
+
+`start()` ne prend aucun paramètre et réutilise le direct actif. `currentProducts()` conserve
+l'accès à la file de produits du vendeur. Les appels `public`, `keyword` et `viewerToken`
+sont anonymes et n'envoient aucun jeton bearer.
+
+```ts
+const live = await client.liveSessions.start();
+await client.liveSessions.pin(live.id, { product_id, keyword: "BOUBOU" });
+const publisher = await client.livekit.token({ room_type: "broadcast", live_session_id: live.id });
+const view = await client.liveSessions.public(live.id);
+const viewer = await client.livekit.viewerToken({ live_session_id: live.id });
+const match = await client.liveSessions.keyword(live.id, { text: "BOUBOU" });
+await client.liveSessions.pin(live.id, { product_id: null });
+await client.liveSessions.end(live.id);
+```
+
+Le multistream utilise `egress`, `startEgress` et `stopEgress`. Le démarrage renvoie HTTP 503
+`not_configured` si `LIVE_EGRESS_ENABLED` est désactivé ou si LiveKit n'est pas configuré.
+Les clés de stream sont transitoires : le SDK ne les journalise et ne les stocke jamais.
+Les schémas du service egress manquent dans la référence : `startEgress` transmet un objet JSON
+et les réponses egress sont typées `unknown`.
+
+`client.voice` est déprécié et les routes vocales Engine vont être retirées. La voix des apps,
+dont Kairmel, utilise son propre talker.
 
 ### Installation
 

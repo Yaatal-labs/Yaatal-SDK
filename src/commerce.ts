@@ -151,6 +151,7 @@ export interface CommerceKyc {
   document_ref?: string | null;
   submitted_at?: string;
   reviewed_at?: string | null;
+  payout_mobile?: string | null;
 }
 
 /** views/commerce.rs:103 ConversionsResponse. */
@@ -200,8 +201,8 @@ export interface ListCommerceDeliveriesParams {
   status?: string;
 }
 
-/** controllers/commerce.rs:122 DeliveryUpdate: "delivered" marks it paid, "cancelled" returns the stock. */
-export type CommerceDeliveryStatus = "delivered" | "cancelled";
+/** DeliveryUpdate: COD delivered/cancelled; paid online orders shipped/delivered. */
+export type CommerceDeliveryStatus = "shipped" | "delivered" | "cancelled";
 
 /** controllers/commerce.rs:129 ContactParams: who to deliver to, for pay on delivery. */
 export interface CommerceContact {
@@ -285,6 +286,14 @@ export class CommerceClient {
     });
   }
 
+  /** Set a Senegal E.164 payout number. Changing a verified destination resets KYC to pending. */
+  setPayoutDestination(input: { mobile: string }): Promise<CommerceKyc> {
+    return this.http.request<CommerceKyc>("/api/commerce/kyc/payout-destination", {
+      method: "POST",
+      body: input,
+    });
+  }
+
   /**
    * Buy a token pack (Kairmel API credit) as the signed-in user: the credit lands on their own
    * Kairmel account. Answers like `sheet.checkout`; send the buyer to `payment.launch_url`.
@@ -296,7 +305,7 @@ export class CommerceClient {
     );
   }
 
-  /** Mark a pay-on-delivery order delivered or cancelled. `receiptId` is the receipt's `receipt_id`. */
+  /** Update a COD order (delivered/cancelled) or paid online order (shipped/delivered), by receipt_id. */
   updateDelivery(
     receiptId: string,
     update: { status: CommerceDeliveryStatus },

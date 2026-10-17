@@ -4,6 +4,36 @@ All notable SDK changes should be recorded here.
 
 Les changements importants du SDK doivent etre notes ici.
 
+## 0.3.0-beta.1 - Unreleased
+
+### Added / Ajouts
+
+- Merchant workspace: `client.merchant.dashboard`, `products` and `orders`, with pagination.
+  Espace marchand : tableau de bord et listes paginées de produits et commandes.
+- `client.commerce.setPayoutDestination` for the seller's payout mobile number.
+  Destination de versement du vendeur via son numéro mobile.
+- Live selling: start/end, product pins, public viewer projection, keyword lookup and egress.
+  Vente en direct : démarrage/fin, produits épinglés, vue publique, mots-clés et multistream.
+- Anonymous LiveKit `viewerToken`; broadcast token requests accept `live_session_id` without `room`.
+  Jetons LiveKit anonymes ; demandes broadcast avec `live_session_id`, sans `room`.
+- Route smoke coverage and offline mocked checks for the new merchant and live calls.
+  Vérifications des routes et tests simulés hors ligne des appels marchands et directs.
+
+### Fixed / Corrections
+
+- Commerce delivery updates accept `shipped` for paid online orders; KYC exposes `payout_mobile`.
+  Les livraisons en ligne acceptent `shipped` ; le KYC expose `payout_mobile`.
+
+### Notes
+
+- Egress service schemas are absent from the reference: JSON input pass-through and `unknown` responses.
+  Schémas egress absents de la référence : entrée JSON transmise telle quelle et réponses `unknown`.
+
+### Deprecated / Dépréciations
+
+- Engine `VoiceClient` and its methods are scheduled for retirement; app voice uses its own talker.
+  `VoiceClient` et ses méthodes vont être retirés ; les apps utilisent leur propre talker.
+
 ## 0.2.0-beta.0 - Unreleased
 
 Adds the Engine `main` routes apps and AI agents need next (reviewed against Engine merge #49,
@@ -55,7 +85,7 @@ Adds the Engine `main` routes apps and AI agents need next (reviewed against Eng
   analytics, and BOBO commerce bridge APIs.
 - Offline BCEAO PI-SPI interoperable payment-QR generation (`src/pispi.ts`,
   `yaatal pispi qr` CLI command) over BCEAO's official `@pi-spi/qrcode`
-  package — no Engine call required.
+  package; no Engine call required.
 - `"pispi"` as a BOBO checkout payment method, with an optional `pispi_alias`
   (the buyer's 36-character PI-SPI payment address). The alias selects the flow:
   omit it for the QR flow (the merchant presents a dynamic QR, the buyer scans),

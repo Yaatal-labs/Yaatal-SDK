@@ -118,9 +118,34 @@ export type {
   ModelPricing,
 } from "./inference.js";
 export { LiveKitClient } from "./livekit.js";
-export type { LiveKitRoomType, LiveKitTokenRequest, LiveKitTokenResponse } from "./livekit.js";
+export type {
+  LiveKitRoomType,
+  LiveKitTokenRequest,
+  LiveKitTokenResponse,
+  LiveKitViewerTokenRequest,
+} from "./livekit.js";
 export { LiveSessionsClient } from "./live-sessions.js";
-export type { CurrentSessionProducts, LiveSession } from "./live-sessions.js";
+export type {
+  CurrentSessionProducts,
+  EndedLiveSession,
+  LiveEgressDestinationInput,
+  LiveEgressJob,
+  LiveEgressLayout,
+  LiveEgressProvider,
+  LiveEgressSource,
+  LiveEgressView,
+  LivePinnedProduct,
+  LiveSession,
+  LiveSessionKeywordMatch,
+  LiveSessionKeywordRequest,
+  LiveSessionPin,
+  PinLiveSessionRequest,
+  PublicLiveSession,
+  StartLiveEgressRequest,
+  StartedLiveSession,
+} from "./live-sessions.js";
+export { MerchantClient } from "./merchant.js";
+export type { MerchantDashboard } from "./merchant.js";
 export { NotificationsClient } from "./notifications.js";
 export type {
   ListNotificationsParams,
