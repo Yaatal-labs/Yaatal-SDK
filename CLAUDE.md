@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`@yaatal/client` — typed TypeScript client for Yaatal Engine (plus a tool-manifest generator and
+`@yaatal-labs/client` — typed TypeScript client for Yaatal Engine (plus a tool-manifest generator and
 a minimal MCP server). The Engine owns all business state; this package owns request shapes, auth
 headers, typed responses, and API errors. See `README.md` and `ROADMAP.md`.
 

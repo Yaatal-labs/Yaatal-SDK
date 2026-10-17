@@ -6,6 +6,11 @@ Les changements importants du SDK doivent etre notes ici.
 
 ## 0.3.0-beta.1 - Unreleased
 
+### Changed / Changements
+
+- The npm package is now `@yaatal-labs/client` (the `@yaatal` scope is not reachable). `0.2.0-beta.1` was never published.
+  Le package npm s'appelle maintenant `@yaatal-labs/client`. `0.2.0-beta.1` n'a jamais été publié.
+
 ### Added / Ajouts
 
 - Merchant workspace: `client.merchant.dashboard`, `products` and `orders`, with pagination.
