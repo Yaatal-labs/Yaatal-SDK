@@ -4,7 +4,7 @@ All notable SDK changes should be recorded here.
 
 Les changements importants du SDK doivent etre notes ici.
 
-## 0.3.0-beta.1 - Unreleased
+## 0.3.0-beta.1 - 2026-11-18
 
 ### Changed / Changements
 
@@ -12,6 +12,13 @@ Les changements importants du SDK doivent etre notes ici.
   Le package npm s'appelle maintenant `@yaatal-labs/client`. `0.2.0-beta.1` n'a jamais été publié.
 
 ### Added / Ajouts
+
+- Subpath entry points so an app imports only what it uses: `@yaatal-labs/client/inference`, `/live-sessions`, `/auth`,
+  `/commerce`, `/delivery`, `/products`, `/merchant`, `/types`.
+  Points d'entrée par module : une app importe seulement ce qu'elle utilise.
+- Release workflow: pushing a `v*` tag builds the package on GitHub and attaches the `.tgz` to a GitHub release (no npm
+  token needed). Apps install it from the release URL.
+  Publication : un tag `v*` construit le paquet sur GitHub et joint le `.tgz` à une release.
 
 - Merchant workspace: `client.merchant.dashboard`, `products` and `orders`, with pagination.
   Espace marchand : tableau de bord et listes paginées de produits et commandes.
