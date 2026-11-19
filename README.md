@@ -138,6 +138,43 @@ service schemas, so `startEgress` passes a JSON object through and egress respon
 Engine voice (`client.voice`) is deprecated and scheduled for retirement. App voice, including
 Kairmel, uses its own talker.
 
+### Calls, boards and business profiles
+
+Three small clients for services next to Engine. Each has its own address and keys, so each has its own
+subpath and its own factory. Keys come only from the options you pass; nothing is read from the environment.
+Errors are `YaatalApiError` (`status`, `body`).
+
+```ts
+import { createCallsClient } from "@yaatal-labs/client/calls";
+import { createBoardsClient } from "@yaatal-labs/client/boards";
+import { createBusinessClient } from "@yaatal-labs/client/business";
+
+// Bocalines: agents, runs, text chat, outbound phone call. baseUrl is the host; /api/v1 is added.
+const calls = createCallsClient({ baseUrl: "https://calls.example.com", apiKey: process.env.BOCALINES_API_KEY! });
+const agents = await calls.listAgents({ status: "active" });
+const session = await calls.startTextChat(agents[0].id);
+await calls.sendTextMessage(agents[0].id, session.workflow_run_id, "Hello");
+const run = await calls.getRun(agents[0].id, session.workflow_run_id); // transcript_url, gathered_context, cost_info
+await calls.startPhoneCall(agents[0].workflow_uuid!, { phone_number: "+14155550123" }); // dials a real number
+
+// Gloop voice Worker (default https://glooplab-voice.ameth749.workers.dev): orders and the kitchen board.
+// Server-side calls send demoKey; a browser on an allowed site origin sends none.
+const boards = createBoardsClient({ demoKey: process.env.GLOOP_DEMO_KEY });
+await boards.order({ agent: "nia", name: "Ada", phone: "+1 555 0100", fulfil: "pickup", size: "small",
+  date: "2030-01-01", time: "12:00", items: [{ id: "jollof", qty: 1 }] });
+const tickets = await boards.board("nia");
+await boards.setStatus({ agent: "nia", id: tickets[0].id, to: "prepping" }, { staffPin: "1234" }); // one step forward
+// boards.ingest(...) needs the ingestKey option (x-ingest-key).
+
+// Business profiles: public reads that website and phone agents share. Edits are operator-side.
+const business = createBusinessClient();
+const profile = await business.profile("acme");
+const facts = await business.facts("acme"); // plain text for a voice agent
+const { initial_context } = await business.precall("acme"); // Bocalines pre-call payload
+```
+
+There is no speech module yet: the Kairmel gateway has no audio routes to wrap.
+
 ### Server-only helpers (`@yaatal-labs/client/server`)
 
 Holds secrets, so it is a separate entry that the main `@yaatal-labs/client` never imports. Use it on a
@@ -542,6 +579,12 @@ et les réponses egress sont typées `unknown`.
 
 `client.voice` est déprécié et les routes vocales Engine vont être retirées. La voix des apps,
 dont Kairmel, utilise son propre talker.
+
+### Appels, tableaux et profils d'entreprise
+
+Trois petits clients pour des services à côté d'Engine, chacun avec son adresse, ses clés et son sous-chemin :
+`@yaatal-labs/client/calls` (Bocalines, clé `X-API-Key`), `/boards` (commandes et tableau du Worker vocal Gloop)
+et `/business` (profils en lecture seule). Les clés viennent uniquement des options. Voir les exemples en anglais ci-dessus.
 
 ### Installation
 

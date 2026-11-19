@@ -4,6 +4,22 @@ All notable SDK changes should be recorded here.
 
 Les changements importants du SDK doivent etre notes ici.
 
+## 0.4.0-beta.1 - Unreleased
+
+### Added / Ajouts
+
+- `@yaatal-labs/client/calls`: Bocalines (our calling system) with `X-API-Key` auth: `listAgents`, `getAgent`,
+  `listRuns`, `getRun`, `startTextChat`, `sendTextMessage`, `startPhoneCall`.
+  Bocalines (notre système d'appels), authentifié par `X-API-Key`.
+- `@yaatal-labs/client/boards`: the Gloop voice Worker's `order`, `board`, `setStatus` (forward-only, optional staff PIN)
+  and `ingest`; demo key, ingest key and extra headers are options.
+  Commandes, tableau, changement de statut (en avant seulement) et ingestion du Worker vocal Gloop.
+- `@yaatal-labs/client/business`: read-only business profiles: `profile`, `facts`, `precall`. Edits stay operator-side.
+  Profils d'entreprise en lecture seule.
+- Not added: a speech module. The Kairmel gateway (Yaatal-OS `apps/token-gateway`) has no audio routes yet, so there is
+  nothing to wrap.
+  Pas de module voix : la passerelle Kairmel n'a pas encore de routes audio.
+
 ## 0.3.0-beta.1 - 2026-11-18
 
 ### Changed / Changements

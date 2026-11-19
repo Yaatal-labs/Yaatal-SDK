@@ -1,6 +1,6 @@
 {
   "name": "@yaatal-labs/client",
-  "version": "0.3.0-beta.1",
+  "version": "0.4.0-beta.1",
   "description": "Typed JavaScript/TypeScript client for Yaatal Engine",
   "type": "module",
   "license": "MIT OR Apache-2.0",
@@ -51,6 +51,18 @@
       "types": "./dist/merchant.d.ts",
       "import": "./dist/merchant.js"
     },
+    "./calls": {
+      "types": "./dist/calls.d.ts",
+      "import": "./dist/calls.js"
+    },
+    "./boards": {
+      "types": "./dist/boards.d.ts",
+      "import": "./dist/boards.js"
+    },
+    "./business": {
+      "types": "./dist/business.d.ts",
+      "import": "./dist/business.js"
+    },
     "./types": {
       "types": "./dist/types.d.ts",
       "import": "./dist/types.js"
@@ -70,7 +82,7 @@
     "test:cli": "node ./scripts/cli-smoke.mjs",
     "test:pispi": "node ./scripts/pispi-smoke.mjs",
     "test:pack-install": "node ./scripts/pack-install-smoke.mjs",
-    "test:unit": "node --test test/engine-catchup.test.mjs test/commerce.test.mjs test/server.test.mjs test/engine-routes.test.mjs",
+    "test:unit": "node --test test/engine-catchup.test.mjs test/commerce.test.mjs test/server.test.mjs test/engine-routes.test.mjs test/calls.test.mjs test/boards.test.mjs test/business.test.mjs",
     "example:node-smoke": "node ./examples/node-smoke.mjs",
     "check": "npm run test:contracts && npm run build && npm run test:cli && npm run test:pispi && npm run test:unit && npm run test:pack-install",
     "test": "npm run test:contracts && npm run build && npm run test:cli && npm run test:pispi && npm run test:unit",
