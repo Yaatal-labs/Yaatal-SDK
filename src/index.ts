@@ -6,6 +6,40 @@ export type {
   AnalyticsResponse,
   AnalyticsTrackRequest,
 } from "./analytics.js";
+export { BoardsClient, createBoardsClient } from "./boards.js";
+export type {
+  BoardMove,
+  BoardOrder,
+  BoardsClientOptions,
+  BoardStatus,
+  BoardOrderItem,
+  IngestRequest,
+  OrderReceipt,
+  OrderRequest,
+} from "./boards.js";
+export { BusinessClient, createBusinessClient } from "./business.js";
+export type {
+  BusinessClientOptions,
+  BusinessData,
+  BusinessOffer,
+  BusinessProfile,
+  PrecallContext,
+} from "./business.js";
+export { CallsClient, createCallsClient } from "./calls.js";
+export type {
+  Agent,
+  AgentStatus,
+  AgentSummary,
+  CallsClientOptions,
+  ListRunsParams,
+  PhoneCall,
+  Run,
+  RunList,
+  StartPhoneCallOptions,
+  StartPhoneCallRequest,
+  StartTextChatRequest,
+  TextChatSession,
+} from "./calls.js";
 export { AuthClient } from "./auth.js";
 export type {
   CurrentUser,
